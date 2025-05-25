@@ -112,3 +112,47 @@ pub struct APIFileUploadResponse {
     pub file_key: String,
     pub file_non_perment_link: Option<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LoginReq {
+    pub phone_number: String,
+    pub password: String,
+    pub device_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct LoginResponse {
+    pub otp: Option<InitiatedOtp>,
+    pub auth: Option<AuthenticatedUser>
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct DepartmentId(pub i64);
+
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum BasePermission {
+    Create,
+    View,
+    Edit,
+    Delete
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum FinancialPermission {
+    ViewReports,
+    Withdraw
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum PermittedAction {
+    MedicalHistory(BasePermission),
+    Labouratory(BasePermission),
+    Billing(BasePermission),
+    InstitutionSetting(BasePermission),
+    PersonnelManagement(BasePermission),
+    DepartmentManagement(BasePermission),
+    FinancialManagement(FinancialPermission),
+}
+

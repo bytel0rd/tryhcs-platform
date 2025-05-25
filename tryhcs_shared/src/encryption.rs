@@ -2,7 +2,7 @@ use crate::api_params::ErrorMessage;
 
 
 // #[async_trait::async_trait]
-pub trait Encryption {
+pub trait Encryption: Send + Sync {
     fn encrypt(&self, data: &str) -> eyre::Result<String, ErrorMessage>;
     fn decrypt(&self, data: &str) -> eyre::Result<String, ErrorMessage>;
 }
