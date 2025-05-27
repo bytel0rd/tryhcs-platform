@@ -1,6 +1,5 @@
 use crate::api_params::ErrorMessage;
 
-
 // #[async_trait::async_trait]
 pub trait Encryption: Send + Sync {
     fn encrypt(&self, data: &str) -> eyre::Result<String, ErrorMessage>;
@@ -24,13 +23,8 @@ pub struct ClientEncryption {
     pub iv: String,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct PublicEncyption {
     pub public_key: String,
     pub timestamp: i64,
 }
-
-
-
-

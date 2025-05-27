@@ -1,0 +1,6 @@
+{
+     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.runnables.extraEnv": {
+        "CARGO_HOME": "/home/codespace/.cargo/bin"
+    }
+}

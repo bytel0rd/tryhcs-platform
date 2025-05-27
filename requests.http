@@ -1,0 +1,228 @@
+@hostname=localhost
+@port=4080
+# @host={{hostname}}:{{port}}
+@host=https://hcs-demo-api.blueandgreen.ng
+@workspace=hcs_89ff025b8847430dacf4c17df2437f41
+
+@token=aa906018-f35d-41a5-bf95-ba1c3824ea10
+
+### register institution init
+POST http://{{host}}/register/initate HTTP/1.1
+content-type: application/json
+
+{
+    "institution_name": "TryHcs Hospital",
+    "email": "abiodun@blueandgreen.ng",
+    "classification": "Primary",
+    "setting": "PRIVATE",
+    "address": "Powerline",
+    "town": "Oshogbo",
+    "state": "Osun",
+
+    "first_name": "Faith",
+    "last_name": "Dishe",
+    "mobile": "+2348149464288",
+    "title": "Doctor",
+    "password": "!244@bioP"
+
+}
+
+
+
+### register complete
+POST http://{{host}}/register/complete HTTP/1.1
+content-type: application/json
+
+{
+    "otp_code": "12345",
+    "session_id": "SZX-CRI-e5c5d0c8-8eef-4d51-ba90-2b59ab7081ba"
+}
+
+
+### login init
+# POST http://{{host}}/login HTTP/1.1
+POST {{host}}/login HTTP/1.1
+content-type: application/json
+
+{
+    "phone_number": "+2348149464288",
+    "password": "Password!",
+    "device_id": "device1234"
+}
+
+
+
+### login complete
+POST http://{{host}}/login/complete HTTP/1.1
+content-type: application/json
+
+{
+    "otp_code": "12345",
+    "session_id": "SZX-LGN-de22129e-4e25-4844-b983-2872e634988f"
+}
+
+
+# {
+#   "data": {
+#     "principal": {
+#       "department_ids": [
+#         1,
+#         2,
+#         3,
+#         4
+#       ],
+#       "first_name": "Faith",
+#       "insitutions": [
+#         {
+#           "address": "Powerline",
+#           "classification": "Primary",
+#           "email": "abiodun@blueandgreen.ng",
+#           "id": 1,
+#           "institution_name": "TryHcs Hospital",
+#           "logo": null,
+#           "setting": "PRIVATE",
+#           "state": "Osun",
+#           "town": "Oshogbo",
+#           "workspace_code": "{{workspace}}"
+#         }
+#       ],
+#       "last_name": "Dishe",
+#       "mobile": "08149464288",
+#       "profile_image_url": null,
+#       "staff_id": 1,
+#       "title": "Doctor"
+#     },
+#     "token": "8ddcbe10-6064-4a1d-b9ef-9282f1a3a4b3"
+#   },
+#   "message": "Successful!",
+#   "status_code": 200
+# }
+
+###
+GET http://{{host}}/user/profile HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+# {
+#   "data": {
+#     "department_ids": [
+#       1,
+#       2,
+#       3,
+#       4
+#     ],
+#     "first_name": "Faith",
+#     "id": 1,
+#     "institution_id": 1,
+#     "last_name": "Dishe",
+#     "mobile": "08149464288",
+#     "profile_image": null,
+#     "title": "Doctor"
+#   },
+#   "message": "Successful!",
+#   "status_code": 200
+# }
+
+###
+GET http://{{host}}/departments HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+
+###
+GET http://{{host}}/staffs HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+###
+GET http://{{host}}/staffs/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+###
+GET http://{{host}}/clients?page_number=1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+
+###
+POST http://{{host}}/clients HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+{"first_name":"Monique","last_name":"Girona",
+"gender":"FEMALE","dob":"2025-03-05T00:00:00.000Z",
+"email":"","isChild":"false",
+"emergency_contact_name":"John Bard",
+"emergency_contact_mobile":"08149464299","
+country":"NG","state":"Lagos","town":"Newark",
+"address":"256 Chapman Road STE 105-4",
+"phone_number":"+2348149464299",
+"attending_departments":[13,14,15,16],
+"metadata":{}}
+
+###
+GET http://{{host}}/clients/4/records?page_number=1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+
+###
+GET http://{{host}}/compliance/v1/onboard/overview HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+
+###
+POST http://{{host}}/compliance/v1/onboard/corporate HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+{
+"rc_no":"RC00000000",
+"tin":"00000000-0000",
+"corporate_account_number":"1000000000",
+"corporate_bank_code":"058",
+"private_healthcare_certificate_url":"-"
+}
+
+
+###
+POST http://{{host}}/compliance/v1/onboard/healthcare HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+{
+"licensed_medical_doctor_name":"Dr Vincent Strange",
+"licensed_medical_doctor_mdcn_no":"MCD-0001122",
+"licensed_medical_doctor_mdcn_speciality":"General surgery",
+"licensed_medical_doctor_mdcn_image_url":"-",
+"licensed_medical_doctor_email":"mail@gmail.com",
+"licensed_medical_doctor_phone_no":"092010201122"
+}
+
+
+
+###
+POST http://{{host}}/compliance/v1/onboard/finance HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+Workspace: {{workspace}}
+
+{
+"director_legal_name":"Vincent Strange",
+"director_legal_bvn":"11111111111",
+"director_legal_dob":"1908-03-04",
+"director_legal_gov_id_type":"INTERNATIONAL PASSPORT",
+"director_legal_gov_id_url":"-"
+}

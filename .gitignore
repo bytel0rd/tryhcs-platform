@@ -1,2 +1,5 @@
 .env
 target/
+**/bindings
+**/node_modules
+**/pkg
