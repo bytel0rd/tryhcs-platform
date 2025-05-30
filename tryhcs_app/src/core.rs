@@ -117,12 +117,12 @@ impl GuestApplication {
     pub async fn verify_otp(
         &self,
         verify_otp: &VerifyOTP,
-    ) -> eyre::Result<Arc<AuthenticatedApplication>, ErrorMessage> {
+    ) -> eyre::Result<AuthenticatedApplication, ErrorMessage> {
         let authenticated = self.core.hcs_api.verify_otp(verify_otp).await?;
-        return Ok(Arc::new(AuthenticatedApplication::new(
+        return Ok(AuthenticatedApplication::new(
             authenticated,
             self.core.clone(),
-        )));
+        ));
     }
 }
 
