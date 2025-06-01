@@ -1,8 +1,8 @@
+use bon::Builder;
+use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 use serde_json::Value;
- use bon::Builder;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub enum RecordTypes {
@@ -47,7 +47,6 @@ pub enum RecordTypes {
     },
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug, Builder, Default)]
 pub struct StaffPatientData {
     pub fullname: String,
@@ -55,7 +54,6 @@ pub struct StaffPatientData {
     pub card_no: Option<String>,
     pub last_entry_date: Option<DateTime<Utc>>,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, Builder)]
 pub struct PatientHistoryDto {

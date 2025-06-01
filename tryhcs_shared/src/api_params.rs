@@ -42,7 +42,6 @@ impl Into<ErrorMessage> for ApiResponseError {
     }
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 pub struct PaginatedResult<T> {
@@ -51,14 +50,19 @@ pub struct PaginatedResult<T> {
     pub total: i64,
     pub data: Vec<T>,
     pub status: u16,
-    pub error_message: Option<String>
+    pub error_message: Option<String>,
 }
 
-impl <T> Default for PaginatedResult<T> {
+impl<T> Default for PaginatedResult<T> {
     fn default() -> Self {
-        Self { page_size: 0,
-             page_number: 0, total: 0, data: vec![], status: 500, 
-             error_message: None }
+        Self {
+            page_size: 0,
+            page_number: 0,
+            total: 0,
+            data: vec![],
+            status: 500,
+            error_message: None,
+        }
     }
 }
 

@@ -13,7 +13,7 @@ use ts_rs::TS;
 
 use super::unauthorized_states::UnauthorizedState;
 
-#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, TS, Default)]
 #[ts(export)]
 pub struct GlobalState {
     pub guest_state: UnauthorizedState,

@@ -15,15 +15,19 @@ pub trait Storage: Send + Sync {
     async fn delete(&self, key: &str) -> eyre::Result<()>;
 }
 
+#[cfg(all(not(target_arch = "wasm32"), any(unix, windows)))]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum AppStorage {
     InMemory,
-
-    #[cfg(target_arch = "wasm32")]
-    Browser,
-
-    #[cfg(all(not(target_arch = "wasm32"), any(unix, windows)))]
     Native(String),
+}
+
+#[cfg(target_arch = "wasm32")]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum AppStorage {
+    InMemory,
+    Browser,
 }
 
 #[cfg(target_arch = "wasm32")]

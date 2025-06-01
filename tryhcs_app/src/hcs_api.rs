@@ -1,80 +1,194 @@
 use either::Either;
-use reqwest::header::HeaderValue;
+use reqwest::header::{HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
+use std::str::FromStr;
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 use tracing::{debug, error, info};
+use tryhcs_shared::institution_params::{AuthorizedUser, DepartmentDto, StaffDto, StaffId};
 
+use crate::core::AppHook;
+use crate::storage::Storage;
 use crate::{core::HcsAppConfig, hcs_endpoints::HcsEndpoints, utils::encrypt_payload};
-use tryhcs_shared::api_params::ApiResponseError;
+use tryhcs_shared::api_params::{ApiResponseError, PaginatedResult};
 use tryhcs_shared::{
     api_params::{ApiResponseData, ErrorMessage},
     encryption::Encryption,
     institution_params::{AuthenticatedUser, LoginResponse},
 };
 
-const REQUEST_FAILED_ERROR: &str = "REQUEST FAILED";
+pub const REQUEST_FAILED_ERROR: &str = "REQUEST FAILED";
+pub const AUTH_TOKEN_STORAGE_KEY: &str = "SYSTEM|AUTH_TOKEN";
+pub const CURRENT_WORKSPACE_STORAGE_KEY: &str = "SYSTEM|WORKSPACE_ID";
 
 #[derive(Clone)]
 pub struct HcsApi {
     pub config: Arc<HcsAppConfig>,
     pub encryption: Arc<dyn Encryption>,
-    pub token: Arc<RwLock<Option<String>>>,
+    pub storage: Arc<dyn Storage>,
+    pub app_hooks: Arc<Option<Box<dyn AppHook>>>,
 }
 
 impl HcsApi {
-    pub fn new(config: Arc<HcsAppConfig>, encryption: Arc<dyn Encryption>) -> Self {
+    pub fn new(
+        config: Arc<HcsAppConfig>,
+        storage: Arc<dyn Storage>,
+        encryption: Arc<dyn Encryption>,
+        app_hooks: Arc<Option<Box<dyn AppHook>>>,
+    ) -> Self {
         HcsApi {
             config,
             encryption,
-            token: Arc::new(RwLock::new(None)),
+            storage,
+            app_hooks,
         }
     }
 
-    // #[cfg(all(not(target_arch = "wasm32"), any(unix, windows)))]
+    pub async fn get(&self, url: &str) -> eyre::Result<Either<String, ErrorMessage>, ErrorMessage> {
+        let client = reqwest::Client::new();
+        debug!(method="GET", url=?url);
+
+        let request = client.get(url);
+        let request = self.add_request_headers(request).await;
+        let request = request.send().await;
+
+        match self.extract_response(url, request).await {
+            Ok(value) => value,
+            Err(value) => return value,
+        }
+    }
+
+    async fn add_request_headers(
+        &self,
+        mut request: reqwest::RequestBuilder,
+    ) -> reqwest::RequestBuilder {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+
+        request = request.timeout(Duration::from_secs(
+            self.config.request_timeout_in_sec as u64,
+        ));
+
+        match self.storage.get(AUTH_TOKEN_STORAGE_KEY).await {
+            Err(error_message) => {
+                error!(message="Storage error while getting the token header", err=?error_message);
+            }
+            Ok(Some(token)) => match HeaderValue::from_str(&format!("Bearer {}", token)) {
+                Err(error_message) => {
+                    error!(message="Failed to set authorization token header", err=?error_message);
+                }
+                Ok(header_value) => {
+                    headers.insert(reqwest::header::AUTHORIZATION, header_value);
+                }
+            },
+            _ => {}
+        };
+
+        match self.storage.get(CURRENT_WORKSPACE_STORAGE_KEY).await {
+            Err(error_message) => {
+                error!(message="Storage error while getting the workspace id header", err=?error_message);
+            }
+            Ok(Some(workspace_code)) => match HeaderValue::from_str(&workspace_code) {
+                Err(error_message) => {
+                    error!(message="Failed to set workspace id request header", err=?error_message);
+                }
+                Ok(header_value) => {
+                    headers.insert("Workspace", header_value);
+                }
+            },
+            _ => {}
+        };
+
+        request = request.headers(headers);
+        request
+    }
+
     pub async fn post(
         &self,
         url: &str,
         body: String,
     ) -> eyre::Result<Either<String, ErrorMessage>, ErrorMessage> {
         let client = reqwest::Client::new();
+        debug!(url=?url, method="POST", body=?body);
+        let request = client.post(url);
+        let request = self.add_request_headers(request).await;
+        let request = request.body(body).send().await;
+        match self.extract_response(url, request).await {
+            Ok(value) => value,
+            Err(value) => return value,
+        }
+    }
 
-        debug!(url=?url, body=?body);
+    pub async fn put(
+        &self,
+        url: &str,
+        body: String,
+    ) -> eyre::Result<Either<String, ErrorMessage>, ErrorMessage> {
+        let client = reqwest::Client::new();
+        debug!(method="POST", url=?url,  body=?body);
+        let request = client.put(url);
+        let request = self.add_request_headers(request).await;
+        let request = request.body(body).send().await;
+        match self.extract_response(url, request).await {
+            Ok(value) => value,
+            Err(value) => return value,
+        }
+    }
 
-        let request = client
-            .post(url)
-            .header(
-                reqwest::header::CONTENT_TYPE,
-                HeaderValue::from_static("application/json"),
-            )
-            .body(body)
-            .send()
-            .await;
+    pub async fn delete(
+        &self,
+        url: &str,
+        body: String,
+    ) -> eyre::Result<Either<String, ErrorMessage>, ErrorMessage> {
+        let client = reqwest::Client::new();
+        debug!(method="DELETE", url=?url,  body=?body);
+        let request = client.delete(url);
+        let request = self.add_request_headers(request).await;
+        let request = request.body(body).send().await;
+        match self.extract_response(url, request).await {
+            Ok(value) => value,
+            Err(value) => return value,
+        }
+    }
 
+    async fn extract_response(
+        &self,
+        url: &str,
+        request: Result<reqwest::Response, reqwest::Error>,
+    ) -> Result<
+        Result<Either<String, ErrorMessage>, ErrorMessage>,
+        Result<Either<String, ErrorMessage>, ErrorMessage>,
+    > {
         match request {
             Err(error) => {
                 error!(message="Request failure: ", url=?error.url(), error=?error);
-                return Err(REQUEST_FAILED_ERROR.into());
+                return Err(Err(REQUEST_FAILED_ERROR.into()));
             }
             Ok(response) => {
                 let status = response.status();
+                dbg!(&response);
                 let response_str = {
                     match response.text().await {
                         Err(err) => {
                             error!(message="Failed to read response body ", error=?err);
-                            return Err(REQUEST_FAILED_ERROR.into());
+                            return Err(Err(REQUEST_FAILED_ERROR.into()));
                         }
                         Ok(raw_str) => raw_str,
                     }
                 };
 
+                dbg!(&response_str);
                 debug!(url=?url, status=?status, response=?response_str);
 
                 if !status.is_success() {
-                    return Ok(Either::Right(ErrorMessage(response_str)));
+                    return Err(Ok(Either::Right(ErrorMessage(response_str))));
                 }
-                return Ok(Either::Left(response_str));
+                return Ok(Ok(Either::Left(response_str)));
             }
-        }
+        };
     }
 
     async fn decrypt_response<T: DeserializeOwned, E: DeserializeOwned + Into<ErrorMessage>>(
@@ -112,15 +226,19 @@ impl HcsApi {
 
 #[async_trait::async_trait(?Send)]
 impl HcsEndpoints for HcsApi {
+    async fn is_online(&self) -> bool {
+        if let Some(app_hooks) = &*self.app_hooks {
+            return app_hooks.is_online_callback();
+        }
+        return true;
+    }
+
     async fn login(
         &self,
         login_req: &tryhcs_shared::institution_params::LoginReq,
     ) -> eyre::Result<LoginResponse, ErrorMessage> {
         let url = format!("{}/login", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), login_req)?;
-
-        debug!(url=?url, body=?body);
-
         let request = self.post(&url, body).await?;
         let response = self
             .decrypt_response::<ApiResponseData<LoginResponse>, ApiResponseError>(&request)
@@ -132,10 +250,8 @@ impl HcsEndpoints for HcsApi {
         &self,
         verify_otp: &tryhcs_shared::institution_params::VerifyOTP,
     ) -> eyre::Result<AuthenticatedUser, ErrorMessage> {
-        let url = format!("{}/api/login/complete", self.config.base_api_url);
+        let url = format!("{}/login/complete", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), verify_otp)?;
-
-        debug!(url=?url, body=?body);
 
         let request = self.post(&url, body).await?;
         let response = self
@@ -147,34 +263,45 @@ impl HcsEndpoints for HcsApi {
     async fn get_auth_profile(
         &self,
     ) -> eyre::Result<tryhcs_shared::institution_params::StaffDto, ErrorMessage> {
-        todo!()
+        let url = format!("{}/user/profile", self.config.base_api_url);
+        let request = self.get(&url).await?;
+        let response = self
+            .decrypt_response::<ApiResponseData<StaffDto>, ApiResponseError>(&request)
+            .await?;
+        Ok(response.data)
     }
 
     async fn get_staff_details(
         &self,
-        staff_id: &tryhcs_shared::institution_params::StaffId,
-    ) -> eyre::Result<Option<tryhcs_shared::institution_params::StaffDto>, ErrorMessage> {
-        todo!()
+        StaffId(staff_id): &tryhcs_shared::institution_params::StaffId,
+    ) -> eyre::Result<tryhcs_shared::institution_params::StaffDto, ErrorMessage> {
+        let url = format!("{}/staffs/{}", self.config.base_api_url, staff_id);
+        let request = self.get(&url).await?;
+        let response = self
+            .decrypt_response::<ApiResponseData<StaffDto>, ApiResponseError>(&request)
+            .await?;
+        Ok(response.data)
     }
 
     async fn search_staffs_directory(
         &self,
-        query: Option<&str>,
     ) -> eyre::Result<Vec<tryhcs_shared::institution_params::StaffDto>, ErrorMessage> {
-        todo!()
+        let url = format!("{}/staffs", self.config.base_api_url);
+        let request = self.get(&url).await?;
+        let response = self
+            .decrypt_response::<PaginatedResult<StaffDto>, ApiResponseError>(&request)
+            .await?;
+        Ok(response.data)
     }
 
     async fn search_departments(
         &self,
-        query: Option<&str>,
     ) -> eyre::Result<Vec<tryhcs_shared::institution_params::DepartmentDto>, ErrorMessage> {
-        todo!()
-    }
-
-    async fn get_department(
-        &self,
-        department_id: &tryhcs_shared::institution_params::DepartmentId,
-    ) -> eyre::Result<Option<tryhcs_shared::institution_params::StaffDto>, ErrorMessage> {
-        todo!()
+        let url = format!("{}/departments", self.config.base_api_url);
+        let request = self.get(&url).await?;
+        let response = self
+            .decrypt_response::<PaginatedResult<DepartmentDto>, ApiResponseError>(&request)
+            .await?;
+        Ok(response.data)
     }
 }

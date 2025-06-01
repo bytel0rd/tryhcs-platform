@@ -100,7 +100,7 @@ pub async fn unauthorized_state_machine<T: StateFeedBackTrait>(
                                 if let Ok(mut app_state) = app.state.write() {
                                     app_state.guest_state.login_state.verify_otp_info = None;
                                 }
-                            },
+                            }
                             Err(e) => {
                                 feedback.on_error(e).await;
                             }
