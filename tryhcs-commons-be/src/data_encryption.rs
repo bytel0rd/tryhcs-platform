@@ -9,12 +9,6 @@ use lettre::transport::smtp::response;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tracing::error;
 
-#[async_trait::async_trait]
-pub trait DataEncryptor: Send + Sync {
-    async fn encrypt_with_key<T: EncryptableData>(&self, data: T) -> eyre::Result<Vec<u8>>;
-    async fn decrypt_with_key<T: EncryptableData>(&self, data: T) -> eyre::Result<Vec<u8>>;
-}
-
 pub trait EncryptableData {
     type Data: Serialize + DeserializeOwned;
     fn encrypt(&mut self, key: &[u8], nonce: &[u8]) -> eyre::Result<()>;
@@ -46,13 +40,13 @@ pub(crate) enum SecretField<T> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeterministicSecretField<T> {
+pub struct DeterministicEncrypted<T> {
     pub(crate) field_data: DeterministicField<T>,
 }
 
-impl<T> DeterministicSecretField<T> {
+impl<T> DeterministicEncrypted<T> {
     pub fn from_raw(data: T) -> Self {
-        DeterministicSecretField {
+        DeterministicEncrypted {
             field_data: DeterministicField::V1(SecretField::Decrypted(
                 SecretFieldInternalRep::new(data),
             )),
@@ -60,7 +54,7 @@ impl<T> DeterministicSecretField<T> {
     }
 
     pub fn from_encrypted(data: Vec<u8>) -> Self {
-        DeterministicSecretField {
+        DeterministicEncrypted {
             field_data: DeterministicField::V1(SecretField::Encrypted(data)),
         }
     }
@@ -75,7 +69,7 @@ impl<T> DeterministicSecretField<T> {
     }
 }
 
-impl<T: Serialize + DeserializeOwned + Clone> EncryptableData for DeterministicSecretField<T> {
+impl<T: Serialize + DeserializeOwned + Clone> EncryptableData for DeterministicEncrypted<T> {
     type Data = T;
     fn encrypt(&mut self, key: &[u8], nonce: &[u8]) -> eyre::Result<()> {
         let encrypted = {
@@ -183,7 +177,7 @@ impl<T: Serialize + DeserializeOwned + Clone> EncryptableData for DeterministicS
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum NonDeterministicField<T> {
+pub(crate) enum NonDeterministicField<T> {
     V1 {
         data_encyption_key: SecretField<Vec<u8>>,
         nonce: Vec<u8>,
@@ -454,4 +448,79 @@ impl<T: Serialize + DeserializeOwned + Clone> EncryptableData for NonDeterminist
 
         result
     }
+}
+
+#[derive(Clone)]
+pub struct Encryptor {
+    key: Vec<u8>,
+    nonce: Vec<u8>,
+}
+
+impl Encryptor {
+    pub fn new(key: Vec<u8>, nonce: Vec<u8>) -> Self {
+        Encryptor { key, nonce }
+    }
+
+    pub fn generate() -> Self {
+        let key = aes_gcm::Aes256Gcm::generate_key(aes_gcm::aead::OsRng).to_vec(); // Safe to use because the key is never repeated
+        let nonce = aes_gcm::Aes256Gcm::generate_nonce(&mut aes_gcm::aead::OsRng).to_vec();
+
+        Encryptor { key, nonce }
+    }
+
+    pub fn set_deterministic<T: Serialize + DeserializeOwned + Clone>(
+        &self,
+        val: T,
+    ) -> eyre::Result<Vec<u8>> {
+        let Encryptor { key, nonce } = &self;
+        DeterministicEncrypted::from_raw(val).get_encrypted_data(&key, &nonce)
+    }
+
+    pub fn set_non_deterministic<T: Serialize + DeserializeOwned + Clone>(
+        &self,
+        val: T,
+    ) -> eyre::Result<Vec<u8>> {
+        let Encryptor { key, nonce } = &self;
+        NonDeterministicEncrypted::from_raw(val).get_encrypted_data(&key, &nonce)
+    }
+
+    pub fn get_deterministic<T: Serialize + DeserializeOwned + Clone>(
+        &self,
+        val: Vec<u8>,
+    ) -> eyre::Result<T> {
+        let Encryptor { key, nonce } = &self;
+        DeterministicEncrypted::from_encrypted(val).get_data(&key, &nonce)
+    }
+
+    pub fn get_non_deterministic<T: Serialize + DeserializeOwned + Clone>(
+        &self,
+        val: Vec<u8>,
+    ) -> eyre::Result<T> {
+        let Encryptor { key, nonce } = &self;
+        NonDeterministicEncrypted::from_encrypted(val)?.get_data(&key, &nonce)
+    }
+}
+
+pub trait Encryptable {
+    fn encrypt_deterministic(&self, enc: &Encryptor) -> eyre::Result<Vec<u8>>;
+    fn encrypt_randomized(&self, enc: &Encryptor) -> eyre::Result<Vec<u8>>;
+}
+
+impl<T> Encryptable for T
+where
+    T: Serialize + DeserializeOwned + Clone,
+{
+    fn encrypt_deterministic(&self, enc: &Encryptor) -> eyre::Result<Vec<u8>> {
+        enc.set_deterministic(self.clone())
+    }
+
+    fn encrypt_randomized(&self, enc: &Encryptor) -> eyre::Result<Vec<u8>> {
+        enc.set_non_deterministic(self.clone())
+    }
+}
+
+pub trait Encrypted {
+    type Output;
+
+    fn encrypt(&self, encryptor: &Encryptor) -> eyre::Result<Self::Output>;
 }

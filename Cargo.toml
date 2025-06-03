@@ -2,8 +2,10 @@
 members = [
     "tryhcs_shared",
     "tryhcs_app",
-    "tryhcs-personnel-be",
+    "tryhcs-customers-be",
     "tryhcs-commons-be",
+    "tryhcs-notifications-be",
+    "tryhcs-derive-be",
 ]
 
 [workspace.dependencies]

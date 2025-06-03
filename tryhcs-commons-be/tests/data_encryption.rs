@@ -4,7 +4,7 @@ use aes_gcm::{AeadCore, KeyInit};
 use serde_json::json;
 use tracing::info;
 use tryhcs_commons_be::data_encryption::{
-    DeterministicSecretField, EncryptableData, NonDeterministicEncrypted, NonDeterministicField,
+    DeterministicEncrypted, EncryptableData, NonDeterministicEncrypted,
 };
 
 static INIT: Once = Once::new();
@@ -32,7 +32,7 @@ const ENCRYPTED_RAW_TEST_DETERMINIC_VALUE: &[u8] = &[
 fn should_encrypt_deterministic() {
     init_logger();
 
-    let mut derministic_field = DeterministicSecretField::from_raw(RAW_PLAIN_TEXT.to_string());
+    let mut derministic_field = DeterministicEncrypted::from_raw(RAW_PLAIN_TEXT.to_string());
     derministic_field
         .encrypt(AES_GSM_ENCRYPTION_KEY, AES_GSM_ENCRYPTION_NONCE)
         .expect("Failed to encrypt deterministic field");
@@ -52,8 +52,8 @@ fn should_encrypt_deterministic() {
 fn should_decrypt_deterministic() {
     init_logger();
 
-    let mut derministic_field: DeterministicSecretField<String> =
-        DeterministicSecretField::from_encrypted(ENCRYPTED_RAW_TEST_DETERMINIC_VALUE.to_vec());
+    let mut derministic_field: DeterministicEncrypted<String> =
+        DeterministicEncrypted::from_encrypted(ENCRYPTED_RAW_TEST_DETERMINIC_VALUE.to_vec());
     derministic_field
         .decrypt(AES_GSM_ENCRYPTION_KEY, AES_GSM_ENCRYPTION_NONCE)
         .expect("Failed to decrypt deterministic field");

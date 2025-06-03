@@ -677,6 +677,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+
+[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -720,6 +726,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "envy"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f47e0157f2cb54f5ae1bd371b30a2ae4311e1c028f575cd4e81de7353215965"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -3339,7 +3354,41 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "tryhcs-derive-be",
  "tryhcs_shared",
+]
+
+[[package]]
+name = "tryhcs-derive-be"
+version = "0.0.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "regex",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "tryhcs-notifications-be"
+version = "0.0.0"
+dependencies = [
+ "async-trait",
+ "bon",
+ "chrono",
+ "derive_more",
+ "dotenv",
+ "either",
+ "envy",
+ "eyre",
+ "futures",
+ "lettre",
+ "phonenumber",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tryhcs-commons-be",
+ "uuid",
 ]
 
 [[package]]
@@ -3368,7 +3417,9 @@ dependencies = [
  "tokio",
  "tracing",
  "tryhcs-commons-be",
+ "tryhcs-derive-be",
  "tryhcs_shared",
+ "uuid",
 ]
 
 [[package]]
