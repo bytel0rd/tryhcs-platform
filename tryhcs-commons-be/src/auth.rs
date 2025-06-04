@@ -38,7 +38,7 @@ pub trait TypeAuthenticated {
 
     fn from_authorized_user(
         user: AuthorizedUser,
-        identifier: &Either<InstitutionId, String>,
+        workspace_code: &str,
     ) -> eyre::Result<Either<Self::Authorized, (StatusCode, ErrorMessage)>>;
 }
 
@@ -53,17 +53,12 @@ impl TypeAuthenticated for AuthorizedInstitutionUser {
 
     fn from_authorized_user(
         user: AuthorizedUser,
-        identifier: &Either<InstitutionId, String>,
+        workspace_code: &str,
     ) -> eyre::Result<Either<Self, (StatusCode, ErrorMessage)>> {
         let account = user
             .accounts
             .iter()
-            .find(|i| match identifier {
-                Either::Left(InstitutionId(institution_id)) => *institution_id == i.institution.id,
-                Either::Right(institution_code) => {
-                    i.institution.workspace_code.eq(institution_code)
-                }
-            })
+            .find(|i|  i.institution.workspace_code.eq(workspace_code))
             .map(|v| v.clone());
 
         Ok(match account {

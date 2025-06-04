@@ -6,7 +6,8 @@ use ts_rs::TS;
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 pub struct InstitutionDto {
-    pub id: i64,
+    pub id: String,
+    pub px: i64,
     pub institution_name: String,
     pub email: String,
     pub classification: String,
@@ -35,7 +36,7 @@ pub struct AuthorizedUser {
 #[derive(Serialize, Deserialize, Debug, Clone, Builder, TS)]
 #[ts(export)]
 pub struct AuthorizedInstitutionUser {
-    pub staff_id: i64,
+    pub staff_id: String,
     pub first_name: String,
     pub last_name: String,
     pub mobile: String,
@@ -63,7 +64,7 @@ pub struct StaffId(pub i64);
 #[derive(Serialize, Deserialize, Debug, Builder, Clone, TS)]
 #[ts(export)]
 pub struct StaffDto {
-    pub id: i64,
+    pub id: String,
     pub first_name: String,
     pub last_name: String,
     pub mobile: String,
@@ -75,7 +76,7 @@ pub struct StaffDto {
 #[derive(Serialize, Deserialize, Debug, Clone, Builder, TS)]
 #[ts(export)]
 pub struct DepartmentDto {
-    pub id: i64,
+    pub id: String,
     pub name: String,
     pub institution_id: i64,
     pub modified_at: DateTime<Utc>,
@@ -155,7 +156,7 @@ pub enum PermittedAction {
 #[derive(Serialize, Deserialize, Debug, Builder, Clone, TS)]
 #[ts(export)]
 pub struct DepartmentMember {
-    pub staff_id: i64,
+    pub staff_id: String,
     pub role: String,
 }
 
@@ -164,7 +165,7 @@ pub struct DepartmentMember {
 pub struct CreateDepartment {
     pub name: String,
     pub domain: String,
-    pub head_staff_id: Option<i64>,
+    pub head_staff_id: Option<String>,
     pub phone_no: Option<String>,
     pub staff_ids: Vec<DepartmentMember>,
 }

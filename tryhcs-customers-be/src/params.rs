@@ -132,7 +132,7 @@ impl FromRequestParts<Arc<App>> for WorkspaceAdmin {
                 Some(auth_user) => {
                     match AuthorizedInstitutionUser::from_authorized_user(
                         auth_user.principal,
-                        &Either::Right(workspace_code),
+                        &workspace_code,
                     ) {
                         Err(err) => {
                             tracing::error!(message="Error serializing session", err=?err);
@@ -266,7 +266,7 @@ impl FromRequestParts<Arc<App>> for WorkspaceUser {
                 Some(auth_user) => {
                     match AuthorizedInstitutionUser::from_authorized_user(
                         auth_user.principal,
-                        &Either::Right(workspace_code),
+                        &workspace_code,
                     ) {
                         Err(err) => {
                             tracing::error!(message="Error serializing session", err=?err);

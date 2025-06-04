@@ -239,10 +239,10 @@ pub async fn find_departments_endpoint(
 pub async fn get_department_and_staff_endpoint(
     State(app): State<Arc<App>>,
     WorkspaceUser(user): WorkspaceUser,
-    Path(department_id): Path<i64>,
+    Path(department_id): Path<String>,
 ) -> (StatusCode, Json<Value>) {
     convert_result_to_json_response(
-        api::get_department_and_staffs(app.as_ref(), &user, department_id).await,
+        api::get_department_and_staffs(app.as_ref(), &user, &department_id).await,
     )
 }
 

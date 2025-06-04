@@ -12,7 +12,7 @@ create table institutions (
     workspace_code varchar(100) not null,
     compliance_status varchar(20) not null default 'PENDING', -- (VERIFIED, PENDING, REJECTED, SUBMITTED)
 
-    shadow_id uuid not null default gen_random_uuid(),
+    shadow_id uuid not null unique default gen_random_uuid(),
     -- foreign_key to staffs table modified_at timestamptz default Now (),
     modified_at timestamptz not null default Now (),
     created_at timestamptz not null default Now (),
@@ -28,7 +28,7 @@ create table users (
     device_ids varchar(70) array not null  default array[]::varchar[],
     last_login_time timestamptz,
 
-    shadow_id uuid not null default gen_random_uuid(),
+    shadow_id uuid not null unique default gen_random_uuid(),
     deleted_at timestamptz,
     modified_at timestamptz not null default Now (),
     created_at timestamptz not null default Now ()
@@ -43,7 +43,7 @@ create table staffs (
     institution_id bigint,
     profile_image varchar(255),
 
-        shadow_id uuid not null default gen_random_uuid(),
+        shadow_id uuid not null unique default gen_random_uuid(),
     deleted_at timestamptz,
     modified_at timestamptz not null default Now (),
     created_at timestamptz not null default Now (),
@@ -55,11 +55,11 @@ CREATE TABLE departments (
     name VARCHAR(100) NOT NULL,
     institution_id BIGINT NOT NULL,
     domain VARCHAR(100) NOT NULL,
-    head_staff_id BIGINT,
+    head_staff_id VARCHAR(40),
     staffs_ids JSONB NOT NULL DEFAULT '[]'::jsonb,  -- ✅ corrected here
     phone_no VARCHAR(30),
 
-    shadow_id uuid not null default gen_random_uuid(),
+    shadow_id uuid not null unique default gen_random_uuid(),
     deleted_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()

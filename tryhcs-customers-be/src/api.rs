@@ -278,7 +278,7 @@ async fn setup_auth_profile_and_token(
                 .collect();
 
             let user = AuthorizedInstitutionUser {
-                staff_id: s.id,
+                staff_id: s.shadow_id,
                 first_name: s.first_name,
                 last_name: s.last_name,
                 mobile: s.mobile,
@@ -311,7 +311,7 @@ pub async fn get_staff_profile(
 ) -> eyre::Result<ApiResponse<StaffDto>> {
     match app
         .db_pool
-        .find_institution_staff_by_id_opts(auth.institution.id, staff_id)
+        .find_institution_staff_by_id_opts(auth.institution.px, staff_id)
         .await?
     {
         None => {
@@ -333,7 +333,7 @@ pub async fn find_staffs(
 ) -> eyre::Result<ApiResponse<Vec<StaffDto>>> {
     let staffs = app
         .db_pool
-        .find_institution_staffs(auth.institution.id, pagination.query.to_owned())
+        .find_institution_staffs(auth.institution.px, pagination.query.to_owned())
         .await?
         .into_iter()
         .map(|s| s.into())
@@ -348,7 +348,7 @@ pub async fn find_departments(
 ) -> eyre::Result<ApiResponse<Vec<DepartmentDto>>> {
     let departments = app
         .db_pool
-        .find_institution_departments(auth.institution.id, search.query.to_owned())
+        .find_institution_departments(auth.institution.px, search.query.to_owned())
         .await?
         .into_iter()
         .map(|s| s.into())
@@ -438,11 +438,11 @@ fn verify_password(value: &str, hash: &str) -> eyre::Result<()> {
 pub async fn get_department_and_staffs(
     app: &App,
     auth: &AuthorizedInstitutionUser,
-    department_id: i64,
+    department_id: &str,
 ) -> eyre::Result<ApiResponse<DepartmentAndStaffDto>> {
     let department = app
         .db_pool
-        .get_institution_department(auth.institution.id, department_id)
+        .get_institution_department(auth.institution.px, department_id)
         .await?;
 
     match department {
@@ -455,7 +455,7 @@ pub async fn get_department_and_staffs(
         Some(department) => {
             let staffs = app
                 .db_pool
-                .find_department_staffs(auth.institution.id, department_id)
+                .find_department_staffs(auth.institution.px, department_id)
                 .await?
                 .into_iter()
                 .map(|s| s.into())
@@ -466,7 +466,8 @@ pub async fn get_department_and_staffs(
                 .find(|s| {
                     department
                         .head_staff_id
-                        .map(|id| id == s.id.clone())
+                        .as_ref()
+                        .map(|id| id.eq_ignore_ascii_case(&s.id))
                         .unwrap_or(false)
                 })
                 .cloned();
@@ -492,7 +493,7 @@ pub async fn create_department(
 ) -> eyre::Result<ApiResponse<DepartmentDto>> {
     let insitution_departments = app
         .db_pool
-        .find_institution_departments(auth.institution.id, None)
+        .find_institution_departments(auth.institution.px, None)
         .await?;
     let insitution_departments = insitution_departments
         .iter()
@@ -508,7 +509,7 @@ pub async fn create_department(
     let department = app
         .db_pool
         .create_department(
-            auth.institution.id,
+            auth.institution.px,
             create_department.name,
             create_department.head_staff_id,
             create_department.phone_no,
@@ -531,7 +532,7 @@ pub async fn edit_department(
 ) -> eyre::Result<ApiResponse<DepartmentDto>> {
     let insitution_departments = app
         .db_pool
-        .find_institution_departments(auth.institution.id, None)
+        .find_institution_departments(auth.institution.px, None)
         .await?;
     let insitution_departments = insitution_departments.iter().find(|v| {
         v.deleted_at.is_none() && !(is_adminstrative_department(&v.name)) && v.shadow_id.eq_ignore_ascii_case(department_id)
@@ -569,7 +570,7 @@ pub async fn delete_department(
 ) -> eyre::Result<ApiResponse<()>> {
     let insitution_departments = app
         .db_pool
-        .find_institution_departments(auth.institution.id, None)
+        .find_institution_departments(auth.institution.px, None)
         .await?;
     let insitution_departments = insitution_departments.iter().find(|v| {
         v.deleted_at.is_none() && !(is_adminstrative_department(&v.name)) && v.shadow_id.eq_ignore_ascii_case(department_id)
@@ -592,7 +593,7 @@ pub async fn add_staff(
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     new_staff: NewStaff,
 ) -> eyre::Result<ApiResponse<StaffDto>> {
-    let institution_id = auth.institution.id;
+    let institution_id = auth.institution.px;
     let existing_staff = app
         .db_pool
         .find_staff_by_mobile_and_insitution_id_opts(institution_id, &new_staff.mobile)
@@ -644,7 +645,7 @@ pub async fn edit_staff(
     staff_id: &str,
     new_staff: NewStaff,
 ) -> eyre::Result<ApiResponse<StaffDto>> {
-    let institution_id = auth.institution.id;
+    let institution_id = auth.institution.px;
     let existing_staff: Option<Staff> = app
         .db_pool
         .find_institution_staff_by_id_opts(institution_id, staff_id)
@@ -673,7 +674,7 @@ pub async fn delete_staff(
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     staff_id: &str,
 ) -> eyre::Result<ApiResponse<()>> {
-    let institution_id = auth.institution.id;
+    let institution_id = auth.institution.px;
 
     let existing_staff: Option<Staff> = app
         .db_pool

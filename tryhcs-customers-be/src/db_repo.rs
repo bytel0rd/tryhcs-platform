@@ -27,7 +27,7 @@ pub trait EhrDataRepo: Send + Sync {
         &self,
         institution_id: i64,
         dept_name: String,
-        head_staff_id: Option<i64>,
+        head_staff_id: Option<String>,
         phone_no: Option<String>,
         staffs_ids: &[DepartmentMember],
         domain: &str,
@@ -59,7 +59,7 @@ pub trait EhrDataRepo: Send + Sync {
         &self,
         department_shadow_id_id: &str,
         dept_name: String,
-        head_staff_id: Option<i64>,
+        head_staff_id: Option<String>,
         phone_no: Option<String>,
         staffs_ids: &[DepartmentMember],
         domain: &str,
@@ -96,13 +96,13 @@ pub trait EhrDataRepo: Send + Sync {
     async fn get_institution_department(
         &self,
         institution_id: i64,
-        department_id: i64,
+        department_id: &str,
     ) -> Result<Option<Department>>;
 
     async fn find_department_staffs(
         &self,
         institution_id: i64,
-        department_id: i64,
+        department_id: &str,
     ) -> Result<Vec<Staff>>;
 }
 
@@ -244,7 +244,7 @@ returning id, first_name, last_name, mobile, title, institution_id,  profile_ima
 .wrap_err("Error creating staff")?;
 
         let mut inital_staff_ids = json!(vec![DepartmentMember {
-            staff_id: admin_staff.id,
+            staff_id: admin_staff.shadow_id.clone(),
             role: ADMIN_ROLE.to_string()
         }]);
 
@@ -273,7 +273,7 @@ returning id, first_name, last_name, mobile, title, institution_id,  profile_ima
         &self,
         institution_id: i64,
         dept_name: String,
-        head_staff_id: Option<i64>,
+        head_staff_id: Option<String>,
         phone_no: Option<String>,
         staffs_ids: &[DepartmentMember],
         domain: &str,
@@ -340,14 +340,14 @@ returning id, first_name, last_name, mobile, title, institution_id,  profile_ima
     async fn get_institution_department(
         &self,
         institution_id: i64,
-        department_id: i64,
+        department_id: &str,
     ) -> Result<Option<Department>> {
         query_as!(
         Department,
         "select id, name, institution_id, staffs_ids, head_staff_id, phone_no, deleted_at, modified_at, created_at, domain, shadow_id from departments
         where deleted_at is null and
          institution_id = $1 and
-         id = $2
+         id::varchar = $2
         
 ",
         institution_id,
@@ -364,7 +364,7 @@ returning id, first_name, last_name, mobile, title, institution_id,  profile_ima
     async fn find_department_staffs(
         &self,
         institution_id: i64,
-        department_id: i64,
+        department_id: &str,
     ) -> Result<Vec<Staff>> {
         query_as!(
             Staff,
@@ -377,7 +377,7 @@ WHERE deleted_at IS NULL
       SELECT (elem->>'staff_id')::bigint
       FROM departments d,
            jsonb_array_elements(d.staffs_ids) AS elem
-      WHERE d.id = $2
+      WHERE d.id::varchar = $2
       LIMIT 1
   )
 ORDER BY first_name ASC
@@ -520,7 +520,7 @@ WHERE deleted_at IS NULL
         &self,
         department_id: &str,
         dept_name: String,
-        head_staff_id: Option<i64>,
+        head_staff_id: Option<String>,
         phone_no: Option<String>,
         staffs_ids: &[DepartmentMember],
         domain: &str,

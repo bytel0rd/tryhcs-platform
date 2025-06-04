@@ -24,7 +24,7 @@ pub struct Staff {
 impl From<Staff> for StaffDto {
     fn from(s: Staff) -> Self {
         StaffDto {
-            id: s.id,
+            id: s.shadow_id,
             first_name: s.first_name,
             last_name: s.last_name,
             mobile: s.mobile,
@@ -71,7 +71,8 @@ pub struct Institution {
 impl From<Institution> for InstitutionDto {
     fn from(i: Institution) -> Self {
         InstitutionDto {
-            id: i.id,
+            id: i.shadow_id,
+            px: i.id,
             institution_name: i.name,
             email: i.email,
             classification: i.classification,
@@ -91,7 +92,7 @@ pub struct Department {
     pub name: String,
     pub domain: String,
     pub institution_id: i64,
-    pub head_staff_id: Option<i64>,
+    pub head_staff_id: Option<String>,
     pub shadow_id: String,
     pub staffs_ids: serde_json::Value,
     pub phone_no: Option<String>,
@@ -103,7 +104,7 @@ pub struct Department {
 impl From<Department> for DepartmentDto {
     fn from(d: Department) -> Self {
         DepartmentDto {
-            id: d.id,
+            id: d.shadow_id,
             name: d.name,
             institution_id: d.institution_id,
             created_at: d.created_at,
