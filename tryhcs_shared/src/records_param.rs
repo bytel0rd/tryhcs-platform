@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use ts_rs::TS;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub enum RecordTypes {
@@ -47,7 +48,8 @@ pub enum RecordTypes {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Builder, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Builder, Default, TS)]
+#[ts(export)]
 pub struct StaffPatientData {
     pub fullname: String,
     pub age: Option<String>,
@@ -55,7 +57,8 @@ pub struct StaffPatientData {
     pub last_entry_date: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Builder)]
+#[derive(Serialize, Deserialize, Debug, Clone, Builder, TS)]
+#[ts(export)]
 pub struct PatientHistoryDto {
     pub id: i64,
     pub card_no: Option<String>,
@@ -72,4 +75,19 @@ pub struct PatientHistoryDto {
     pub institution_profile_image_url: Option<String>,
     pub modified_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Builder, TS)]
+#[ts(export)]
+pub struct UploadedFile {
+    pub base64: String,
+    pub content_type: String,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Builder, TS)]
+#[ts(export)]
+pub struct AddPatientRecordReq {
+    pub files: Vec<UploadedFile>,
+    pub text: Option<String>,
 }

@@ -1,5 +1,5 @@
 [package]
-name = "tryhcs-personnel-be"
+name = "tryhcs-customers-be"
 version = "0.0.0"
 edition = "2021"
 
@@ -38,5 +38,8 @@ uuid = { version = "1.1", features = ["serde", "v4"] }
 
 tryhcs-derive-be = {path = "../tryhcs-derive-be"}
 
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+aws-sdk-s3 = "1.68.0"
+tryhcs-notifications-be = {path = "../tryhcs-notifications-be"}
 
-
+mime = "0.3.17"

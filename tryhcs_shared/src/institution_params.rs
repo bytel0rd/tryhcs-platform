@@ -22,7 +22,7 @@ pub struct InstitutionDto {
 #[ts(export)]
 pub struct AuthenticatedUser {
     pub principal: AuthorizedUser,
-    pub token: String,
+    pub token: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Builder, TS)]
@@ -107,23 +107,6 @@ pub struct DepartmentAndStaffDto {
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
-pub struct APIFileUpload {
-    pub service: String,
-    pub file_name: Option<String>,
-    pub content_type: Option<String>,
-    pub base64_data: String,
-    pub link_expires_duration: Option<u64>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export)]
-pub struct APIFileUploadResponse {
-    pub file_key: String,
-    pub file_non_perment_link: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export)]
 pub struct LoginReq {
     pub phone_number: String,
     pub password: String,
@@ -167,4 +150,51 @@ pub enum PermittedAction {
     PersonnelManagement(BasePermission),
     DepartmentManagement(BasePermission),
     FinancialManagement(FinancialPermission),
+}
+
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, TS)]
+#[ts(export)]
+pub struct DepartmentMember {
+    pub staff_id: i64,
+    pub role: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Builder, TS)]
+#[ts(export)]
+pub struct CreateDepartment {
+    pub name: String,
+    pub domain: String,
+    pub head_staff_id: Option<i64>,
+    pub phone_no: Option<String>,
+    pub staff_ids: Vec<DepartmentMember>,
+}
+
+#[derive(Serialize, Deserialize, Debug,TS)]
+#[ts(export)]
+pub struct NewStaff {
+    pub first_name: String,
+    pub last_name: String,
+    pub mobile: String,
+    pub title: String,
+    pub profile_image: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Builder, TS)]
+#[ts(export)]
+pub struct CreateInstitution {
+    pub institution_name: String,
+    pub email: String,
+    pub classification: String,
+    pub setting: String,
+    pub address: Option<String>,
+    pub town: Option<String>,
+    pub state: Option<String>,
+
+    pub first_name: String,
+    pub last_name: String,
+    pub mobile: String,
+    pub title: String,
+    pub password: String,
+
+    pub logo: Option<String>,
 }
