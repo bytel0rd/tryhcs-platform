@@ -5,7 +5,6 @@ use serde_json::Value;
 use tryhcs_shared::institution_params::*;
 use uuid::Uuid;
 
-
 #[derive(Serialize, Deserialize, Debug, Clone, Builder, sqlx::FromRow)]
 pub struct Staff {
     pub id: i64,

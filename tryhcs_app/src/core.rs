@@ -9,8 +9,8 @@ use tryhcs_shared::{
     api_params::ErrorMessage,
     encryption::{self, Encryption, NoEncryption},
     institution_params::{
-        AuthenticatedUser, AuthorizedUser, DepartmentDto, DepartmentId, InitiatedOtp, LoginReq,
-        StaffDto, StaffId, VerifyOTP,
+        AuthenticatedUser, AuthorizedUser, DepartmentDto, DepartmentId, DepartmentShadowId,
+        InitiatedOtp, LoginReq, StaffDto, StaffId, StaffShadowId, VerifyOTP,
     },
 };
 
@@ -247,15 +247,21 @@ impl GuestApplication {
     ) -> Result<(), ErrorMessage> {
         let internal_auth_error: ErrorMessage = ErrorMessage("#Authentication failure".into());
 
-        if let Err(error_message) = self
-            .core
-            .storage
-            .set(AUTH_TOKEN_STORAGE_KEY, &authenticated.token)
-            .await
-        {
-            error!(message="failed to store token in storage", error_message=?error_message);
-            return Err(internal_auth_error);
-        }
+        match &authenticated.token {
+            None => {
+                error!(message = "failed to store token in storage");
+                return Err("Missing auth token".into());
+            }
+            Some(token) => {
+                if let Err(error_message) =
+                    self.core.storage.set(AUTH_TOKEN_STORAGE_KEY, &token).await
+                {
+                    error!(message="failed to store token in storage", error_message=?error_message);
+                    return Err(internal_auth_error);
+                }
+            }
+        };
+
         let mut is_valid_workspace_code = false;
         if let Ok(Some(workspace_code)) = self.core.storage.get(CURRENT_WORKSPACE_STORAGE_KEY).await
         {
@@ -381,13 +387,13 @@ impl AuthenticatedApplication {
 
     pub async fn get_staff_details(
         &self,
-        staff_id: &StaffId,
+        staff_id: &StaffShadowId,
     ) -> eyre::Result<StaffDto, ErrorMessage> {
         let staff = self
             .search_staffs_directory(None)
             .await?
             .into_iter()
-            .find(|staff| staff.id == staff_id.0);
+            .find(|staff| staff.id.eq(&staff_id.0));
         staff.ok_or(ErrorMessage("Staff not found".into()))
     }
 
@@ -444,9 +450,10 @@ impl AuthenticatedApplication {
         };
 
         if let Some(query) = query {
+            let query = query.to_lowercase();
             departments = departments
                 .into_iter()
-                .filter(|x| x.name.contains(query))
+                .filter(|x| x.name.to_lowercase().contains(&query))
                 .collect();
         }
 
@@ -455,13 +462,13 @@ impl AuthenticatedApplication {
 
     pub async fn get_department(
         &self,
-        department_id: &DepartmentId,
+        department_id: &DepartmentShadowId,
     ) -> eyre::Result<DepartmentDto, ErrorMessage> {
         let department = self
             .search_departments(None)
             .await?
             .into_iter()
-            .find(|department| department.id == department_id.0);
+            .find(|department| department.id.eq(&department_id.0));
         department.ok_or(ErrorMessage("Department not found".into()))
     }
 }

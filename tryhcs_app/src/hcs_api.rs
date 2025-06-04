@@ -5,7 +5,9 @@ use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tracing::{debug, error, info};
-use tryhcs_shared::institution_params::{AuthorizedUser, DepartmentDto, StaffDto, StaffId};
+use tryhcs_shared::institution_params::{
+    AuthorizedUser, DepartmentDto, StaffDto, StaffId, StaffShadowId,
+};
 
 use crate::core::AppHook;
 use crate::storage::Storage;
@@ -273,7 +275,7 @@ impl HcsEndpoints for HcsApi {
 
     async fn get_staff_details(
         &self,
-        StaffId(staff_id): &tryhcs_shared::institution_params::StaffId,
+        StaffShadowId(staff_id): &tryhcs_shared::institution_params::StaffShadowId,
     ) -> eyre::Result<tryhcs_shared::institution_params::StaffDto, ErrorMessage> {
         let url = format!("{}/staffs/{}", self.config.base_api_url, staff_id);
         let request = self.get(&url).await?;

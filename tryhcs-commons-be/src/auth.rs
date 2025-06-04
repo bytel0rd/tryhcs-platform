@@ -58,7 +58,7 @@ impl TypeAuthenticated for AuthorizedInstitutionUser {
         let account = user
             .accounts
             .iter()
-            .find(|i|  i.institution.workspace_code.eq(workspace_code))
+            .find(|i| i.institution.workspace_code.eq(workspace_code))
             .map(|v| v.clone());
 
         Ok(match account {

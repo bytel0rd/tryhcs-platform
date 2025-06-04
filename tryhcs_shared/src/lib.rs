@@ -5,9 +5,9 @@ pub mod finance_params;
 pub mod institution_params;
 pub mod records_param;
 
-use ts_rs::TS;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]

@@ -212,9 +212,7 @@ pub async fn get_staff_profile_endpoint(
     WorkspaceUser(user): WorkspaceUser,
     Path(staff_id): Path<String>,
 ) -> (StatusCode, Json<Value>) {
-    convert_result_to_json_response(
-        api::get_staff_profile(app.as_ref(), &user, &staff_id).await,
-    )
+    convert_result_to_json_response(api::get_staff_profile(app.as_ref(), &user, &staff_id).await)
 }
 
 #[axum::debug_handler]

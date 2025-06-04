@@ -4,8 +4,8 @@ use either::Either;
 use tryhcs_shared::{
     api_params::ErrorMessage,
     institution_params::{
-        AuthenticatedUser, AuthorizedUser, DepartmentDto, DepartmentId, LoginReq, LoginResponse,
-        StaffDto, StaffId, VerifyOTP,
+        AuthenticatedUser, AuthorizedUser, DepartmentDto, DepartmentId, DepartmentShadowId,
+        LoginReq, LoginResponse, StaffDto, StaffId, StaffShadowId, VerifyOTP,
     },
 };
 
@@ -21,7 +21,10 @@ pub trait HcsEndpoints: Send + Sync {
 
     async fn get_auth_profile(&self) -> eyre::Result<StaffDto, ErrorMessage>;
 
-    async fn get_staff_details(&self, staff_id: &StaffId) -> eyre::Result<StaffDto, ErrorMessage>;
+    async fn get_staff_details(
+        &self,
+        staff_id: &StaffShadowId,
+    ) -> eyre::Result<StaffDto, ErrorMessage>;
     async fn search_staffs_directory(&self) -> eyre::Result<Vec<StaffDto>, ErrorMessage>;
 
     async fn search_departments(&self) -> eyre::Result<Vec<DepartmentDto>, ErrorMessage>;

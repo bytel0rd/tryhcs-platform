@@ -61,6 +61,10 @@ pub struct InstitutionId(pub i64);
 #[ts(export)]
 pub struct StaffId(pub i64);
 
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[ts(export)]
+pub struct StaffShadowId(pub String);
+
 #[derive(Serialize, Deserialize, Debug, Builder, Clone, TS)]
 #[ts(export)]
 pub struct StaffDto {
@@ -125,6 +129,10 @@ pub struct LoginResponse {
 #[ts(export)]
 pub struct DepartmentId(pub i64);
 
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[ts(export)]
+pub struct DepartmentShadowId(pub String);
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, TS)]
 #[ts(export)]
 pub enum BasePermission {
@@ -170,7 +178,7 @@ pub struct CreateDepartment {
     pub staff_ids: Vec<DepartmentMember>,
 }
 
-#[derive(Serialize, Deserialize, Debug,TS)]
+#[derive(Serialize, Deserialize, Debug, TS)]
 #[ts(export)]
 pub struct NewStaff {
     pub first_name: String,

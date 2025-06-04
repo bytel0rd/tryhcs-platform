@@ -535,7 +535,9 @@ pub async fn edit_department(
         .find_institution_departments(auth.institution.px, None)
         .await?;
     let insitution_departments = insitution_departments.iter().find(|v| {
-        v.deleted_at.is_none() && !(is_adminstrative_department(&v.name)) && v.shadow_id.eq_ignore_ascii_case(department_id)
+        v.deleted_at.is_none()
+            && !(is_adminstrative_department(&v.name))
+            && v.shadow_id.eq_ignore_ascii_case(department_id)
     });
 
     if insitution_departments.is_none() {
@@ -573,7 +575,9 @@ pub async fn delete_department(
         .find_institution_departments(auth.institution.px, None)
         .await?;
     let insitution_departments = insitution_departments.iter().find(|v| {
-        v.deleted_at.is_none() && !(is_adminstrative_department(&v.name)) && v.shadow_id.eq_ignore_ascii_case(department_id)
+        v.deleted_at.is_none()
+            && !(is_adminstrative_department(&v.name))
+            && v.shadow_id.eq_ignore_ascii_case(department_id)
     });
 
     if insitution_departments.is_none() {
