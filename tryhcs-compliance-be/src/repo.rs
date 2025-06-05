@@ -34,8 +34,8 @@ pub trait ComplianceRepo: Send + Sync {
 
 #[derive(Clone)]
 pub struct ComplianceDB {
-    customer_db: PgPool,
-    global_encryptor: Encryptor,
+    pub customer_db: PgPool,
+    // global_encryptor: Encryptor,
 }
 
 #[async_trait]

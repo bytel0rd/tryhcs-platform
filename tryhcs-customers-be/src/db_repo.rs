@@ -108,7 +108,7 @@ pub trait EhrDataRepo: Send + Sync {
 
 #[derive(Clone)]
 pub struct CustomerDB {
-    customer_db: PgPool,
+    pub customer_db: PgPool,
     // credential_db: PgPool,
     // global_encryptor: Encryptor,
 }

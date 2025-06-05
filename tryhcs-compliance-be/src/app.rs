@@ -17,7 +17,7 @@ use tryhcs_shared::{
 use crate::{api::ComplianceVerification, repo::ComplianceRepo};
 
 
-pub struct App {
+pub struct ComplianceApp {
     pub compliance: Arc<dyn ComplianceVerification>,
     pub env: EnvConfig,
     pub redis: Arc<dyn Cache>,

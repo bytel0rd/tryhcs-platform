@@ -29,7 +29,7 @@ use crate::{
     params::{WorkspaceAdmin, WorkspaceUser},
 };
 
-pub async fn app_router(app: Arc<CustomersApp>) -> eyre::Result<Router> {
+pub fn customers_router(app: Arc<CustomersApp>) -> Router {
     let router = Router::new()
         .route("/register/initate", post(create_institution_init_endpoint))
         .route(
@@ -58,7 +58,7 @@ pub async fn app_router(app: Arc<CustomersApp>) -> eyre::Result<Router> {
         // .route("/finance/v1/banks", get(get_banks_endpoint))
         .with_state(app);
 
-    return Ok(router);
+    router
 }
 
 #[axum::debug_handler]

@@ -21,17 +21,17 @@ use tryhcs_shared::{
     institution_params::{AuthenticatedUser, AuthorizedInstitutionUser},
 };
 
-use crate::app::App;
+use crate::app::ComplianceApp;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate)  struct WorkspaceAdmin(pub InstitutionAdminUser);
 
-impl FromRequestParts<Arc<App>> for WorkspaceAdmin {
+impl FromRequestParts<Arc<ComplianceApp>> for WorkspaceAdmin {
     type Rejection = (StatusCode, Json<Value>);
 
     async fn from_request_parts(
         req: &mut Parts,
-        state: &Arc<App>,
+        state: &Arc<ComplianceApp>,
     ) -> Result<Self, Self::Rejection> {
         let status = StatusCode::FORBIDDEN;
         let status_code: u16 = status.as_u16();
@@ -176,12 +176,12 @@ impl FromRequestParts<Arc<App>> for WorkspaceAdmin {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate)  struct WorkspaceUser(pub AuthorizedInstitutionUser);
 
-impl FromRequestParts<Arc<App>> for WorkspaceUser {
+impl FromRequestParts<Arc<ComplianceApp>> for WorkspaceUser {
     type Rejection = (StatusCode, Json<Value>);
 
     async fn from_request_parts(
         req: &mut Parts,
-        state: &Arc<App>,
+        state: &Arc<ComplianceApp>,
     ) -> Result<Self, Self::Rejection> {
         let wrap_error = |status: StatusCode, message: &str| {
             let status_code = status.as_u16();

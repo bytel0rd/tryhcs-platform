@@ -33,4 +33,7 @@ build-tryhcs-app: build-tryhcs-app-native build-tryhcs-app-wasm
 pack-tryhcs-app-wasm:
 	cd tryhcs_app && wasm-pack build --release --target web
 
+platform-run:
+	cargo fmt -p tryhcs-platform && cargo run -p tryhcs-platform
+
 .PHONY: all build build-wasm

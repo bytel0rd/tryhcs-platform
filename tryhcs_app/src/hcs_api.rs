@@ -239,7 +239,7 @@ impl HcsEndpoints for HcsApi {
         &self,
         login_req: &tryhcs_shared::institution_params::LoginReq,
     ) -> eyre::Result<LoginResponse, ErrorMessage> {
-        let url = format!("{}/login", self.config.base_api_url);
+        let url = format!("{}/workspace/v1/login", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), login_req)?;
         let request = self.post(&url, body).await?;
         let response = self
@@ -252,7 +252,7 @@ impl HcsEndpoints for HcsApi {
         &self,
         verify_otp: &tryhcs_shared::institution_params::VerifyOTP,
     ) -> eyre::Result<AuthenticatedUser, ErrorMessage> {
-        let url = format!("{}/login/complete", self.config.base_api_url);
+        let url = format!("{}/workspace/v1/login/complete", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), verify_otp)?;
 
         let request = self.post(&url, body).await?;
@@ -265,7 +265,7 @@ impl HcsEndpoints for HcsApi {
     async fn get_auth_profile(
         &self,
     ) -> eyre::Result<tryhcs_shared::institution_params::AuthorizedUser, ErrorMessage> {
-        let url = format!("{}/user/profile", self.config.base_api_url);
+        let url = format!("{}/workspace/v1/user/profile", self.config.base_api_url);
         let request = self.get(&url).await?;
         let response = self
             .decrypt_response::<ApiResponseData<AuthorizedUser>, ApiResponseError>(&request)
@@ -277,7 +277,10 @@ impl HcsEndpoints for HcsApi {
         &self,
         StaffShadowId(staff_id): &tryhcs_shared::institution_params::StaffShadowId,
     ) -> eyre::Result<tryhcs_shared::institution_params::StaffDto, ErrorMessage> {
-        let url = format!("{}/staffs/{}", self.config.base_api_url, staff_id);
+        let url = format!(
+            "{}/workspace/v1/staffs/{}",
+            self.config.base_api_url, staff_id
+        );
         let request = self.get(&url).await?;
         let response = self
             .decrypt_response::<ApiResponseData<StaffDto>, ApiResponseError>(&request)
@@ -288,7 +291,7 @@ impl HcsEndpoints for HcsApi {
     async fn search_staffs_directory(
         &self,
     ) -> eyre::Result<Vec<tryhcs_shared::institution_params::StaffDto>, ErrorMessage> {
-        let url = format!("{}/staffs", self.config.base_api_url);
+        let url = format!("{}/workspace/v1/staffs", self.config.base_api_url);
         let request = self.get(&url).await?;
         let response = self
             .decrypt_response::<PaginatedResult<StaffDto>, ApiResponseError>(&request)
@@ -299,7 +302,7 @@ impl HcsEndpoints for HcsApi {
     async fn search_departments(
         &self,
     ) -> eyre::Result<Vec<tryhcs_shared::institution_params::DepartmentDto>, ErrorMessage> {
-        let url = format!("{}/departments", self.config.base_api_url);
+        let url = format!("{}/workspace/v1/departments", self.config.base_api_url);
         let request = self.get(&url).await?;
         let response = self
             .decrypt_response::<PaginatedResult<DepartmentDto>, ApiResponseError>(&request)

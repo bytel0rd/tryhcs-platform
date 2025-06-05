@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use tryhcs_shared::{compliance_params::{ComplianceStatus, CorporateComplianceDto, CorporateComplianceEdit, FinancialComplianceDto, FinancialComplianceEdit, HealthcareComplianceDto, HealthcareComplianceEdit, NewComplainceEdit, NewHealthcareComplainceEdit, NewinancialComplainceEdit}, institution_params::{InstitutionId, StaffId, StaffShadowId}};
 
-use crate::app::App;
+use crate::app::ComplianceApp;
 
 use super::repo::*;
 use super::models::*;
@@ -135,7 +135,7 @@ mod compliance_evaluator_tests {
     }
 }
 
-pub async fn get_compliance_data(app: &App, InstitutionAdminUser(user): &InstitutionAdminUser) -> eyre::Result<ApiResponse<ComplianceResponse>> {
+pub async fn get_compliance_data(app: &ComplianceApp, InstitutionAdminUser(user): &InstitutionAdminUser) -> eyre::Result<ApiResponse<ComplianceResponse>> {
     let institution_id = InstitutionId(user.institution.px);
     let corporate = app.compliance_repo.get_corporate_compliance(&institution_id).await?;
     let financial: Option<FinancialCompliance> = app.compliance_repo.get_financial_compliance(&institution_id).await?;
@@ -195,7 +195,7 @@ pub async fn get_compliance_data(app: &App, InstitutionAdminUser(user): &Institu
 // }
 
 pub async fn update_corporate_compliance(
-    app: &App, 
+    app: &ComplianceApp, 
     InstitutionAdminUser(user): &InstitutionAdminUser,
     data: &CorporateComplianceEdit
 ) -> eyre::Result<ApiResponse<CorporateComplianceDto>> {
@@ -232,7 +232,7 @@ fn can_user_update_document(current_status: &str) -> bool {
     !ComplianceStatus::VERIFIED.to_string().eq_ignore_ascii_case(current_status) 
 }
 
-pub async fn update_healthcare_compliance(    app: &App, 
+pub async fn update_healthcare_compliance(    app: &ComplianceApp, 
     InstitutionAdminUser(user): &InstitutionAdminUser, data: &HealthcareComplianceEdit) -> eyre::Result<ApiResponse<HealthcareComplianceDto>> {
     let institution_id = InstitutionId(user.institution.px);
     let saved_compliance = app.compliance_repo.get_healthcare_compliance(&institution_id).await?;
@@ -251,7 +251,7 @@ pub async fn update_healthcare_compliance(    app: &App,
     Ok((StatusCode::OK, Either::Left(Some(compliance.into()))))
 }
 
-pub async fn update_financial_compliance(    app: &App, 
+pub async fn update_financial_compliance(    app: &ComplianceApp, 
     InstitutionAdminUser(user): &InstitutionAdminUser, data: &FinancialComplianceEdit) -> eyre::Result<ApiResponse<FinancialComplianceDto>> {
     let institution_id = InstitutionId(user.institution.px);
    
@@ -284,7 +284,7 @@ pub async fn update_financial_compliance(    app: &App,
     Ok((StatusCode::OK, Either::Left(Some(corporate_data.into()))))
 }
 
-pub async fn submit_compliance(    app: &App, 
+pub async fn submit_compliance(    app: &ComplianceApp, 
     InstitutionAdminUser(user): &InstitutionAdminUser) -> eyre::Result<ApiResponse<()>> {
     let institution_id = InstitutionId(user.institution.px);
     let financial_compliance = app.compliance_repo.get_financial_compliance(&institution_id).await?;
