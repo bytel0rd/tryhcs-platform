@@ -264,11 +264,11 @@ impl HcsEndpoints for HcsApi {
 
     async fn get_auth_profile(
         &self,
-    ) -> eyre::Result<tryhcs_shared::institution_params::StaffDto, ErrorMessage> {
+    ) -> eyre::Result<tryhcs_shared::institution_params::AuthorizedUser, ErrorMessage> {
         let url = format!("{}/user/profile", self.config.base_api_url);
         let request = self.get(&url).await?;
         let response = self
-            .decrypt_response::<ApiResponseData<StaffDto>, ApiResponseError>(&request)
+            .decrypt_response::<ApiResponseData<AuthorizedUser>, ApiResponseError>(&request)
             .await?;
         Ok(response.data)
     }

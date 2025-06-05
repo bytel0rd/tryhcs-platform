@@ -19,7 +19,7 @@ pub trait HcsEndpoints: Send + Sync {
         verify_otp: &VerifyOTP,
     ) -> eyre::Result<AuthenticatedUser, ErrorMessage>;
 
-    async fn get_auth_profile(&self) -> eyre::Result<StaffDto, ErrorMessage>;
+    async fn get_auth_profile(&self) -> eyre::Result<AuthorizedUser, ErrorMessage>;
 
     async fn get_staff_details(
         &self,

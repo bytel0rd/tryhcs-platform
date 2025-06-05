@@ -9,8 +9,8 @@ use tryhcs_shared::{
     api_params::ErrorMessage,
     encryption::{self, Encryption, NoEncryption},
     institution_params::{
-        AuthenticatedUser, AuthorizedUser, DepartmentDto, DepartmentId, DepartmentShadowId,
-        InitiatedOtp, LoginReq, StaffDto, StaffId, StaffShadowId, VerifyOTP,
+        AuthenticatedUser, AuthorizedInstitutionUser, AuthorizedUser, DepartmentDto, DepartmentId,
+        DepartmentShadowId, InitiatedOtp, LoginReq, StaffDto, StaffId, StaffShadowId, VerifyOTP,
     },
 };
 
@@ -72,12 +72,10 @@ impl GlobalApplication {
                         }
                         Ok(user_profile) => {
                             info!("Initate boot get app profile successful");
-                            ApplicationMode::Guest(GuestApplication { core: core_app })
-                            // allow compiling
-                            // ApplicationMode::Authenticated(AuthenticatedApplication::new(
-                            //     user_profile,
-                            //     core_app,
-                            // ))
+                            ApplicationMode::Authenticated(AuthenticatedApplication::new(
+                                user_profile,
+                                core_app,
+                            ))
                         }
                     }
                 };
@@ -377,12 +375,36 @@ impl AuthenticatedApplication {
 }
 
 impl AuthenticatedApplication {
-    pub async fn get_auth_profile(&self) -> eyre::Result<StaffDto, ErrorMessage> {
+    pub async fn get_auth_profile(&self) -> eyre::Result<AuthorizedUser, ErrorMessage> {
         let api = &self.core.hcs_api;
         return api.get_auth_profile().await;
-        // if api.is_online().await {
-        // }
-        // return Ok(self.user.clone());
+    }
+
+    pub async fn get_user_staff_profile(
+        &self,
+    ) -> eyre::Result<AuthorizedInstitutionUser, ErrorMessage> {
+        match self.core.storage.get(CURRENT_WORKSPACE_STORAGE_KEY).await {
+            Err(_) => {
+                return Err("No workspace selected".into());
+            }
+            Ok(workspace) => {
+                let profiles = self.get_auth_profile().await?;
+                let workspace_profile = profiles.accounts.into_iter().find(|a| {
+                    workspace
+                        .as_ref()
+                        .map(|code| a.institution.workspace_code.eq(code))
+                        .unwrap_or(false)
+                });
+                match workspace_profile {
+                    None => {
+                        return Err("Workspace profile not found".into());
+                    }
+                    Some(data) => {
+                        return Ok(data);
+                    }
+                }
+            }
+        }
     }
 
     pub async fn get_staff_details(
