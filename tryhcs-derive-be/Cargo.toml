@@ -1,0 +1,13 @@
+[package]
+name = "tryhcs-derive-be"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.95"
+quote = "1.0.40"
+regex = "1.11.1"
+syn = { version = "1.0", features = ["full"] }

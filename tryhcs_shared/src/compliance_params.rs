@@ -1,22 +1,29 @@
-use serde::{Deserialize, Serialize};
 use bon::Builder;
 use derive_more::{Display, FromStr};
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
+use crate::institution_params::{StaffId, StaffShadowId};
 
-#[derive(Debug, Clone, Serialize, Deserialize,)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ComplianceEvaluation {
     pub compliance_status: ComplianceStatus,
     pub compliance_message: String,
     pub rejected: Vec<String>,
 }
 
-#[derive(Debug, Clone, Display, FromStr, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Display, FromStr, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum ComplianceStatus {
-    VERIFIED, PENDING, REJECTED, SUBMITTED
+    VERIFIED,
+    PENDING,
+    REJECTED,
+    SUBMITTED,
 }
 
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ComplianceResponse {
     pub corporate: Option<CorporateComplianceDto>,
     pub financial: Option<FinancialComplianceDto>,
@@ -24,8 +31,8 @@ pub struct ComplianceResponse {
     pub evaluation: ComplianceEvaluation,
 }
 
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[ts(export)]
 pub struct CorporateComplianceDto {
     pub rc_no: String,
     pub tin: String,
@@ -35,7 +42,8 @@ pub struct CorporateComplianceDto {
     pub stage: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Builder, Clone)]
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, TS)]
+#[ts(export)]
 pub struct HealthcareComplianceDto {
     pub licensed_medical_doctor_name: String,
     pub licensed_medical_doctor_mdcn_no: String,
@@ -43,10 +51,11 @@ pub struct HealthcareComplianceDto {
     pub licensed_medical_doctor_mdcn_image_url: String,
     pub licensed_medical_doctor_email: String,
     pub licensed_medical_doctor_phone_no: String,
-    pub stage: String
+    pub stage: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Builder, Clone)]
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, TS)]
+#[ts(export)]
 pub struct FinancialComplianceDto {
     pub director_legal_name: String,
     pub director_legal_bvn: String,
@@ -56,3 +65,44 @@ pub struct FinancialComplianceDto {
     pub stage: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CorporateComplianceEdit {
+    pub rc_no: String,
+    pub tin: String,
+    pub corporate_account_number: String,
+    pub corporate_bank_code: String,
+    pub private_healthcare_certificate_url: Option<String>,
+}
+
+#[derive(Debug, Clone, TS)]
+#[ts(export)]
+pub struct NewComplainceEdit(pub StaffShadowId, pub CorporateComplianceEdit);
+
+#[derive(Debug, Clone, Serialize, Deserialize,TS)]
+#[ts(export)]
+pub struct HealthcareComplianceEdit {
+    pub licensed_medical_doctor_name: String,
+    pub licensed_medical_doctor_mdcn_no: String,
+    pub licensed_medical_doctor_mdcn_speciality: String,
+    pub licensed_medical_doctor_mdcn_image_url: String,
+    pub licensed_medical_doctor_email: String,
+    pub licensed_medical_doctor_phone_no: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct NewHealthcareComplainceEdit(pub StaffShadowId, pub HealthcareComplianceEdit);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct FinancialComplianceEdit {
+    pub director_legal_name: String,
+    pub director_legal_bvn: String,
+    pub director_legal_dob: String,
+    pub director_legal_gov_id_type: String,
+    pub director_legal_gov_id_url: String,
+    
+}
+
+#[derive(Debug, Clone)]
+pub struct NewinancialComplainceEdit(pub StaffShadowId, pub FinancialComplianceEdit);

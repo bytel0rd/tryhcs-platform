@@ -2,7 +2,15 @@
 members = [
     "tryhcs_shared",
     "tryhcs_app",
+    "tryhcs-customers-be",
+    "tryhcs-commons-be",
+    "tryhcs-notifications-be",
+    "tryhcs-derive-be",
+    "tryhcs-compliance-be",
+    "tryhcs-platform",
 ]
+
+workspace.resolver = "2"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -18,4 +26,7 @@ chrono-humanize = "0.2.3"
 either = "1.13.0"
 reqwest = { version = "0.12.4", features = ["json"] }
 derive_more = { version = "2", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = "0.3.0"
+ts-rs = { version = "10.1", features = [ "serde-json-impl", "chrono-impl", "bigdecimal-impl", "import-esm"] }
 
