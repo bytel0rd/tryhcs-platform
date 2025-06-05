@@ -6,6 +6,7 @@ members = [
     "tryhcs-commons-be",
     "tryhcs-notifications-be",
     "tryhcs-derive-be",
+    "tryhcs-compliance-be",
 ]
 
 workspace.resolver = "2"

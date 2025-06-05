@@ -25,11 +25,11 @@ use tryhcs_shared::{
 
 use crate::{
     api::{self, upload_base64_file_api},
-    app::App,
+    app::CustomersApp,
     params::{WorkspaceAdmin, WorkspaceUser},
 };
 
-pub async fn app_router(app: Arc<App>) -> eyre::Result<Router> {
+pub async fn app_router(app: Arc<CustomersApp>) -> eyre::Result<Router> {
     let router = Router::new()
         .route("/register/initate", post(create_institution_init_endpoint))
         .route(
@@ -63,7 +63,7 @@ pub async fn app_router(app: Arc<App>) -> eyre::Result<Router> {
 
 #[axum::debug_handler]
 pub async fn generic_upload_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceUser(user): WorkspaceUser,
     Json(req): Json<APIFileUpload>,
 ) -> (StatusCode, Json<Value>) {
@@ -82,7 +82,7 @@ pub async fn generic_upload_endpoint(
 
 #[axum::debug_handler]
 pub async fn create_institution_init_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     Json(req): Json<CreateInstitution>,
 ) -> (StatusCode, Json<Value>) {
     convert_result_to_json_response(api::create_institution_init(app.as_ref(), &req).await)
@@ -90,14 +90,14 @@ pub async fn create_institution_init_endpoint(
 
 #[axum::debug_handler]
 pub async fn create_institution_complete_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     Json(req): Json<VerifyOTP>,
 ) -> (StatusCode, Json<Value>) {
     let result = api::create_institution_complete(app.as_ref(), &req).await;
     convert_result_to_json_response(result)
 }
 
-async fn add_user_session(app: Arc<App>, authenticated: &AuthenticatedUser) {
+async fn add_user_session(app: Arc<CustomersApp>, authenticated: &AuthenticatedUser) {
     dbg!((&authenticated.token, &authenticated));
 
     let mut duplicate = authenticated.clone();
@@ -131,7 +131,7 @@ async fn add_user_session(app: Arc<App>, authenticated: &AuthenticatedUser) {
 
 #[axum::debug_handler]
 pub async fn login_init_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
 
     Json(req): Json<LoginReq>,
 ) -> (StatusCode, Json<Value>) {
@@ -146,7 +146,7 @@ pub async fn login_init_endpoint(
 
 #[axum::debug_handler]
 pub async fn login_complete_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     Json(req): Json<VerifyOTP>,
 ) -> (StatusCode, Json<Value>) {
     let result = api::login_complete(app.as_ref(), &req).await;
@@ -158,7 +158,7 @@ pub async fn login_complete_endpoint(
 
 #[axum::debug_handler]
 pub async fn get_user_profile_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     headers: HeaderMap,
     WorkspaceUser(user_): WorkspaceUser,
 ) -> (StatusCode, Json<Value>) {
@@ -208,7 +208,7 @@ pub async fn get_user_profile_endpoint(
 
 #[axum::debug_handler]
 pub async fn get_staff_profile_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceUser(user): WorkspaceUser,
     Path(staff_id): Path<String>,
 ) -> (StatusCode, Json<Value>) {
@@ -217,7 +217,7 @@ pub async fn get_staff_profile_endpoint(
 
 #[axum::debug_handler]
 pub async fn find_staffs_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceUser(user): WorkspaceUser,
     Query(req_query): Query<PaginatedQuery>,
 ) -> (StatusCode, Json<Value>) {
@@ -226,7 +226,7 @@ pub async fn find_staffs_endpoint(
 
 #[axum::debug_handler]
 pub async fn find_departments_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceUser(user): WorkspaceUser,
     Query(req_query): Query<PaginatedQuery>,
 ) -> (StatusCode, Json<Value>) {
@@ -235,7 +235,7 @@ pub async fn find_departments_endpoint(
 
 #[axum::debug_handler]
 pub async fn get_department_and_staff_endpoint(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceUser(user): WorkspaceUser,
     Path(department_id): Path<String>,
 ) -> (StatusCode, Json<Value>) {
@@ -246,7 +246,7 @@ pub async fn get_department_and_staff_endpoint(
 
 #[axum::debug_handler]
 pub async fn create_department(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceAdmin(user): WorkspaceAdmin,
     Json(req): Json<CreateDepartment>,
 ) -> (StatusCode, Json<Value>) {
@@ -255,7 +255,7 @@ pub async fn create_department(
 
 #[axum::debug_handler]
 pub async fn edit_department(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceAdmin(user): WorkspaceAdmin,
     Path(department_id): Path<String>,
     Json(req): Json<CreateDepartment>,
@@ -267,7 +267,7 @@ pub async fn edit_department(
 
 #[axum::debug_handler]
 pub async fn delete_department(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceAdmin(user): WorkspaceAdmin,
     Path(department_id): Path<String>,
 ) -> (StatusCode, Json<Value>) {
@@ -278,7 +278,7 @@ pub async fn delete_department(
 
 #[axum::debug_handler]
 pub async fn add_staff(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceAdmin(user): WorkspaceAdmin,
     Json(req): Json<NewStaff>,
 ) -> (StatusCode, Json<Value>) {
@@ -287,7 +287,7 @@ pub async fn add_staff(
 
 #[axum::debug_handler]
 pub async fn edit_staff(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceAdmin(user): WorkspaceAdmin,
     Path(staff_id): Path<String>,
     Json(req): Json<NewStaff>,
@@ -297,7 +297,7 @@ pub async fn edit_staff(
 
 #[axum::debug_handler]
 pub async fn delete_staff(
-    State(app): State<Arc<App>>,
+    State(app): State<Arc<CustomersApp>>,
     WorkspaceAdmin(user): WorkspaceAdmin,
     Path(staff_id): Path<String>,
 ) -> (StatusCode, Json<Value>) {

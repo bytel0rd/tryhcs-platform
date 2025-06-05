@@ -41,11 +41,11 @@ use tracing::info;
 use serde_json::{json, Value};
 use std::sync::Arc;
 
-use crate::{app::App, db_models::Staff};
+use crate::{app::CustomersApp, db_models::Staff};
 
 // InstitutionRegistration
 pub async fn create_institution_init(
-    app: &App,
+    app: &CustomersApp,
     create_req: &CreateInstitution,
 ) -> eyre::Result<ApiResponse<InitiatedOtp>> {
     if let Some(_) = app
@@ -82,7 +82,7 @@ pub async fn create_institution_init(
 }
 
 pub async fn create_institution_complete(
-    app: &App,
+    app: &CustomersApp,
     verify_req: &VerifyOTP,
 ) -> eyre::Result<ApiResponse<InstitutionDto>> {
     if let Either::Right(err_message) = verify_otp(app, verify_req).await? {
@@ -115,7 +115,7 @@ pub async fn create_institution_complete(
 }
 
 pub async fn login_init(
-    app: &App,
+    app: &CustomersApp,
     login_req: &LoginReq,
 ) -> eyre::Result<ApiResponse<LoginResponse>> {
     let staff_institutions = app
@@ -200,7 +200,7 @@ pub async fn login_init(
 }
 
 pub async fn login_complete(
-    app: &App,
+    app: &CustomersApp,
     verify_req: &VerifyOTP,
 ) -> eyre::Result<ApiResponse<AuthenticatedUser>> {
     if let Either::Right(err_message) = verify_otp(app, verify_req).await? {
@@ -247,7 +247,7 @@ pub async fn login_complete(
 // }
 
 async fn setup_auth_profile_and_token(
-    app: &App,
+    app: &CustomersApp,
     cached_req: &LoginReq,
 ) -> eyre::Result<AuthenticatedUser> {
     let staff_institutions = app
@@ -305,7 +305,7 @@ async fn setup_auth_profile_and_token(
 }
 
 pub async fn get_staff_profile(
-    app: &App,
+    app: &CustomersApp,
     auth: &AuthorizedInstitutionUser,
     staff_id: &str,
 ) -> eyre::Result<ApiResponse<StaffDto>> {
@@ -327,7 +327,7 @@ pub async fn get_staff_profile(
 }
 
 pub async fn find_staffs(
-    app: &App,
+    app: &CustomersApp,
     auth: &AuthorizedInstitutionUser,
     pagination: &PaginatedQuery,
 ) -> eyre::Result<ApiResponse<Vec<StaffDto>>> {
@@ -342,7 +342,7 @@ pub async fn find_staffs(
 }
 
 pub async fn find_departments(
-    app: &App,
+    app: &CustomersApp,
     auth: &AuthorizedInstitutionUser,
     search: &PaginatedQuery,
 ) -> eyre::Result<ApiResponse<Vec<DepartmentDto>>> {
@@ -357,7 +357,7 @@ pub async fn find_departments(
 }
 
 pub async fn send_otp<K: AsRef<str>>(
-    app: &App,
+    app: &CustomersApp,
     channel: NotificationChannel,
     key: K,
 ) -> eyre::Result<InitiatedOtp> {
@@ -407,7 +407,7 @@ pub async fn send_otp<K: AsRef<str>>(
     })
 }
 
-pub async fn verify_otp(app: &App, verify: &VerifyOTP) -> eyre::Result<Either<(), ErrorMessage>> {
+pub async fn verify_otp(app: &CustomersApp, verify: &VerifyOTP) -> eyre::Result<Either<(), ErrorMessage>> {
     let req_cache: String = format!("OTP-{}", &verify.session_id);
 
     dbg!((&req_cache));
@@ -436,7 +436,7 @@ fn verify_password(value: &str, hash: &str) -> eyre::Result<()> {
 }
 
 pub async fn get_department_and_staffs(
-    app: &App,
+    app: &CustomersApp,
     auth: &AuthorizedInstitutionUser,
     department_id: &str,
 ) -> eyre::Result<ApiResponse<DepartmentAndStaffDto>> {
@@ -487,7 +487,7 @@ pub async fn get_department_and_staffs(
 }
 
 pub async fn create_department(
-    app: &App,
+    app: &CustomersApp,
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     create_department: CreateDepartment,
 ) -> eyre::Result<ApiResponse<DepartmentDto>> {
@@ -525,7 +525,7 @@ pub async fn create_department(
 }
 
 pub async fn edit_department(
-    app: &App,
+    app: &CustomersApp,
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     department_id: &str,
     create_department: CreateDepartment,
@@ -566,7 +566,7 @@ pub async fn edit_department(
 }
 
 pub async fn delete_department(
-    app: &App,
+    app: &CustomersApp,
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     department_id: &str,
 ) -> eyre::Result<ApiResponse<()>> {
@@ -593,7 +593,7 @@ pub async fn delete_department(
 }
 
 pub async fn add_staff(
-    app: &App,
+    app: &CustomersApp,
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     new_staff: NewStaff,
 ) -> eyre::Result<ApiResponse<StaffDto>> {
@@ -644,7 +644,7 @@ pub async fn add_staff(
 }
 
 pub async fn edit_staff(
-    app: &App,
+    app: &CustomersApp,
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     staff_id: &str,
     new_staff: NewStaff,
@@ -674,7 +674,7 @@ pub async fn edit_staff(
 }
 
 pub async fn delete_staff(
-    app: &App,
+    app: &CustomersApp,
     InstitutionAdminUser(auth): &InstitutionAdminUser,
     staff_id: &str,
 ) -> eyre::Result<ApiResponse<()>> {
@@ -699,7 +699,7 @@ pub async fn delete_staff(
 }
 
 pub async fn upload_base64_file_api(
-    app: &App,
+    app: &CustomersApp,
     user: &AuthorizedInstitutionUser,
     upload_req: &APIFileUpload,
 ) -> eyre::Result<ApiResponse<APIFileUploadResponse>> {

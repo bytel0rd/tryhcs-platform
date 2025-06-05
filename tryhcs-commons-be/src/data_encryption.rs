@@ -524,3 +524,4 @@ pub trait Encrypted {
 
     fn encrypt(&self, encryptor: &Encryptor) -> eyre::Result<Self::Output>;
 }
+

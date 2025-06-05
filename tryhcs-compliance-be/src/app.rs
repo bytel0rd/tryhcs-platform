@@ -14,11 +14,12 @@ use tryhcs_shared::{
     institution_params::{AuthenticatedUser, AuthorizedInstitutionUser},
 };
 
-use crate::db_repo::EhrDataRepo as CustomerDbRepo;
+use crate::{api::ComplianceVerification, repo::ComplianceRepo};
 
-pub struct CustomersApp {
-    pub db_pool: Arc<dyn CustomerDbRepo>,
-    pub s3_client: aws_sdk_s3::Client,
+
+pub struct App {
+    pub compliance: Arc<dyn ComplianceVerification>,
     pub env: EnvConfig,
     pub redis: Arc<dyn Cache>,
+    pub compliance_repo: Arc<dyn ComplianceRepo>,
 }
