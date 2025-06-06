@@ -30,8 +30,18 @@ build-tryhcs-app-wasm:
 
 build-tryhcs-app: build-tryhcs-app-native build-tryhcs-app-wasm
 
+
+structure-tryhcs-app-wasm-pkg:
+	sed -i '6i\"bindings/",' tryhcs_app/pkg/package.json
+	sed -i '3i\export type * from "./bindings/index.d.ts";' tryhcs_app/pkg/tryhcs_app.d.ts
+	
 pack-tryhcs-app-wasm:
 	cd tryhcs_app && wasm-pack build --release --target web
+
+push-tryhcs-app-wasm:
+	yalc push tryhcs_app/pkg
+
+tryhcs-app-dev: pack-tryhcs-app-wasm structure-tryhcs-app-wasm-pkg push-tryhcs-app-wasm
 
 platform-run:
 	cargo fmt -p tryhcs-platform && cargo run -p tryhcs-platform

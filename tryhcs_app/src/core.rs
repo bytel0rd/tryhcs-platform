@@ -36,17 +36,19 @@ pub struct GlobalApplication {
 pub struct JsAppHooks {}
 impl AppHook for JsAppHooks {
     fn on_log_out(&self) {
-        todo!()
+        // todo!()
+        tracing::info!("Logout called");
     }
 
     fn is_online_callback(&self) -> bool {
-        todo!()
+        // todo!()
+        true
     }
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl GlobalApplication {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(constructor))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = "create"))]
     pub async fn new(config: HcsAppConfig, app_hooks: Option<JsAppHooks>) -> Result<Self, String> {
         let app_hooks: Option<Box<dyn AppHook>> =
             app_hooks.map(|c| Box::new(c) as Box<dyn AppHook>);

@@ -11,6 +11,8 @@ use tryhcs_shared::{
 };
 use ts_rs::TS;
 
+use crate::core::GlobalApplication;
+
 use super::unauthorized_states::UnauthorizedState;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS, Default)]
@@ -18,3 +20,4 @@ use super::unauthorized_states::UnauthorizedState;
 pub struct GlobalState {
     pub guest_state: UnauthorizedState,
 }
+
