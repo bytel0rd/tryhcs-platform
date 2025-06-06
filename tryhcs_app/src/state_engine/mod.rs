@@ -8,14 +8,19 @@ use unauthorized_states::UnAuthorizedStateAction;
 use either::Either;
 use reqwest::StatusCode;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::{boxed::Box, sync::{Arc, RwLock}};
+use std::{
+    boxed::Box,
+    sync::{Arc, RwLock},
+};
 use tryhcs_shared::{
     api_params::{ErrorMessage, PaginatedQuery},
     institution_params::{LoginReq, VerifyOTP},
 };
 use ts_rs::TS;
 
-use crate::{core::GlobalApplication, state_engine::unauthorized_states::unauthorized_state_machine};
+use crate::{
+    core::GlobalApplication, state_engine::unauthorized_states::unauthorized_state_machine,
+};
 
 #[async_trait::async_trait(?Send)]
 pub trait StateFeedBackTrait {
@@ -31,14 +36,19 @@ pub enum StateAction {
     Authorized(AuthorizedStateAction),
 }
 
-
-pub async fn state_machine(app: &mut GlobalApplication, action: StateAction, feedback: Box<dyn StateFeedBackTrait>) {
+pub async fn state_machine(
+    app: &mut GlobalApplication,
+    action: StateAction,
+    feedback: Box<dyn StateFeedBackTrait>,
+) {
     match action {
         StateAction::UnAuthorized(un_authorized_state_action) => {
-            if let Err(err) = unauthorized_state_machine(app, &un_authorized_state_action, &feedback).await  {
+            if let Err(err) =
+                unauthorized_state_machine(app, &un_authorized_state_action, &feedback).await
+            {
                 feedback.on_error(err).await;
             }
-        },
+        }
         StateAction::Authorized(authorized_state_action) => todo!(),
     }
 }

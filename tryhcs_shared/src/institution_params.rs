@@ -178,7 +178,7 @@ pub struct CreateDepartment {
     pub staff_ids: Vec<DepartmentMember>,
 }
 
-#[derive(Serialize, Deserialize, Debug, TS)]
+#[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
 pub struct NewStaff {
     pub first_name: String,
@@ -188,7 +188,7 @@ pub struct NewStaff {
     pub profile_image: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Builder, TS)]
+#[derive(Serialize, Deserialize, Debug, Builder, TS, Clone)]
 #[ts(export)]
 pub struct CreateInstitution {
     pub institution_name: String,

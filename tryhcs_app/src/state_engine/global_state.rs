@@ -20,4 +20,3 @@ use super::unauthorized_states::UnauthorizedState;
 pub struct GlobalState {
     pub guest_state: UnauthorizedState,
 }
-

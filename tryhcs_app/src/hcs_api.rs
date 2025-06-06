@@ -7,7 +7,9 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tracing::{debug, error, info};
 use tryhcs_shared::institution_params::{
-    AuthorizedUser, CreateDepartment, CreateInstitution, DepartmentAndStaffDto, DepartmentDto, DepartmentShadowId, InitiatedOtp, InstitutionDto, NewStaff, StaffDto, StaffId, StaffShadowId, VerifyOTP
+    AuthorizedUser, CreateDepartment, CreateInstitution, DepartmentAndStaffDto, DepartmentDto,
+    DepartmentShadowId, InitiatedOtp, InstitutionDto, NewStaff, StaffDto, StaffId, StaffShadowId,
+    VerifyOTP,
 };
 
 use crate::core::AppHook;
@@ -311,21 +313,27 @@ impl HcsEndpoints for HcsApi {
         Ok(response.data)
     }
 
-     async fn initiate_registration(&self, req: &CreateInstitution) -> eyre::Result<InitiatedOtp, ErrorMessage> {
-                let url = format!("{}/workspace/v1/register/initate", self.config.base_api_url);
+    async fn initiate_registration(
+        &self,
+        req: &CreateInstitution,
+    ) -> eyre::Result<InitiatedOtp, ErrorMessage> {
+        let url = format!("{}/workspace/v1/register/initate", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), req)?;
         let request = self.post(&url, body).await?;
         let response = self
             .decrypt_response::<ApiResponseData<InitiatedOtp>, ApiResponseError>(&request)
             .await?;
         Ok(response.data)
-     }
-     
+    }
+
     async fn complete_registration(
         &self,
         verify_otp: &VerifyOTP,
     ) -> eyre::Result<InstitutionDto, ErrorMessage> {
-                let url = format!("{}/workspace/v1/register/complete", self.config.base_api_url);
+        let url = format!(
+            "{}/workspace/v1/register/complete",
+            self.config.base_api_url
+        );
         let body = encrypt_payload(self.encryption.as_ref(), verify_otp)?;
         let request = self.post(&url, body).await?;
         let response = self
@@ -334,7 +342,10 @@ impl HcsEndpoints for HcsApi {
         Ok(response.data)
     }
 
-    async fn get_departments(&self, DepartmentShadowId(id): &DepartmentShadowId) -> eyre::Result<DepartmentAndStaffDto, ErrorMessage>{
+    async fn get_department(
+        &self,
+        DepartmentShadowId(id): &DepartmentShadowId,
+    ) -> eyre::Result<DepartmentAndStaffDto, ErrorMessage> {
         let url = format!(
             "{}/workspace/v1/departments/{}",
             self.config.base_api_url, id
@@ -346,8 +357,11 @@ impl HcsEndpoints for HcsApi {
         Ok(response.data)
     }
 
-    async fn create_departments(&self, req: &CreateDepartment) -> eyre::Result<DepartmentDto, ErrorMessage>{
-                let url = format!("{}/workspace/v1/departments", self.config.base_api_url);
+    async fn create_department(
+        &self,
+        req: &CreateDepartment,
+    ) -> eyre::Result<DepartmentDto, ErrorMessage> {
+        let url = format!("{}/workspace/v1/departments", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), req)?;
         let request = self.post(&url, body).await?;
         let response = self
@@ -355,8 +369,15 @@ impl HcsEndpoints for HcsApi {
             .await?;
         Ok(response.data)
     }
-    async fn edit_departments(&self, DepartmentShadowId(id): &DepartmentShadowId, req: &CreateDepartment) -> eyre::Result<DepartmentDto, ErrorMessage>{
-                let url = format!("{}/workspace/v1/departments/{}", self.config.base_api_url, id);
+    async fn edit_department(
+        &self,
+        DepartmentShadowId(id): &DepartmentShadowId,
+        req: &CreateDepartment,
+    ) -> eyre::Result<DepartmentDto, ErrorMessage> {
+        let url = format!(
+            "{}/workspace/v1/departments/{}",
+            self.config.base_api_url, id
+        );
         let body = encrypt_payload(self.encryption.as_ref(), req)?;
         let request = self.put(&url, body).await?;
         let response = self
@@ -364,8 +385,14 @@ impl HcsEndpoints for HcsApi {
             .await?;
         Ok(response.data)
     }
-    async fn delete_departments(&self, DepartmentShadowId(id): &DepartmentShadowId) -> eyre::Result<(), ErrorMessage>{
-                let url = format!("{}/workspace/v1/departments/{}", self.config.base_api_url, id);
+    async fn delete_department(
+        &self,
+        DepartmentShadowId(id): &DepartmentShadowId,
+    ) -> eyre::Result<(), ErrorMessage> {
+        let url = format!(
+            "{}/workspace/v1/departments/{}",
+            self.config.base_api_url, id
+        );
         let body = encrypt_payload(self.encryption.as_ref(), &json!({}))?;
         let request = self.delete(&url, body).await?;
         let response = self
@@ -374,12 +401,8 @@ impl HcsEndpoints for HcsApi {
         Ok(response.data)
     }
 
-
-    async fn add_staff(
-        &self,
-        req: &NewStaff,
-    ) -> eyre::Result<StaffDto, ErrorMessage>{
-                let url = format!("{}/workspace/v1/staffs", self.config.base_api_url);
+    async fn add_staff(&self, req: &NewStaff) -> eyre::Result<StaffDto, ErrorMessage> {
+        let url = format!("{}/workspace/v1/staffs", self.config.base_api_url);
         let body = encrypt_payload(self.encryption.as_ref(), req)?;
         let request = self.post(&url, body).await?;
         let response = self
@@ -392,8 +415,11 @@ impl HcsEndpoints for HcsApi {
         &self,
         StaffShadowId(staff_id): &StaffShadowId,
         req: &NewStaff,
-    ) -> eyre::Result<StaffDto, ErrorMessage>{
-                let url = format!("{}/workspace/v1/staffs/{}", self.config.base_api_url, staff_id);
+    ) -> eyre::Result<StaffDto, ErrorMessage> {
+        let url = format!(
+            "{}/workspace/v1/staffs/{}",
+            self.config.base_api_url, staff_id
+        );
         let body = encrypt_payload(self.encryption.as_ref(), req)?;
         let request = self.put(&url, body).await?;
         let response = self
@@ -402,12 +428,14 @@ impl HcsEndpoints for HcsApi {
         Ok(response.data)
     }
 
-
     async fn delete_staff(
         &self,
         StaffShadowId(staff_id): &StaffShadowId,
-    ) -> eyre::Result<(), ErrorMessage>{
-                let url = format!("{}/workspace/v1/staffs/{}", self.config.base_api_url, staff_id);
+    ) -> eyre::Result<(), ErrorMessage> {
+        let url = format!(
+            "{}/workspace/v1/staffs/{}",
+            self.config.base_api_url, staff_id
+        );
         let body = encrypt_payload(self.encryption.as_ref(), &json!({}))?;
         let request = self.delete(&url, body).await?;
         let response = self
@@ -415,5 +443,4 @@ impl HcsEndpoints for HcsApi {
             .await?;
         Ok(response.data)
     }
-    
 }

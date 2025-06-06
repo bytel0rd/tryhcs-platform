@@ -12,7 +12,7 @@ use crate::core::{
 use tracing::*;
 use tryhcs_shared::{
     api_params::{ErrorMessage, PaginatedQuery},
-    institution_params::{LoginReq, VerifyOTP},
+    institution_params::{CreateInstitution, LoginReq, VerifyOTP},
 };
 use ts_rs::TS;
 
@@ -24,6 +24,8 @@ use serde_json::Value;
 pub enum UnAuthorizedStateAction {
     InitateLogin(LoginReq),
     VerifyLoginOTP(VerifyOTP),
+    InitateRegistration(CreateInstitution),
+    CompleteRegistration(VerifyOTP),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS, Default)]
@@ -50,7 +52,7 @@ pub async fn unauthorized_state_machine(
             feedback.on_loading().await;
             let current_app_mode = app.mode.clone();
             if let ApplicationMode::Guest(op_mode) = current_app_mode {
-                let result = op_mode.login(&login_req).await?;
+                let result = op_mode.login_initate(&login_req).await?;
                 match result {
                     Either::Right(otp_session) => match app.state.write() {
                         Err(error_message) => {
@@ -74,11 +76,26 @@ pub async fn unauthorized_state_machine(
             feedback.on_loading().await;
             let current_app_mode = app.mode.clone();
             if let ApplicationMode::Guest(op_mode) = current_app_mode {
-                let authorized_app = op_mode.verify_otp(&verify_otp).await?;
+                let authorized_app = op_mode.login_complete(&verify_otp).await?;
                 app.mode = ApplicationMode::Authenticated(authorized_app);
                 if let Ok(mut app_state) = app.state.write() {
                     app_state.guest_state.login_state.verify_otp_info = None;
                 }
+            }
+        }
+        UnAuthorizedStateAction::InitateRegistration(req) => {
+            feedback.on_loading().await;
+            if let ApplicationMode::Guest(op_mode) = &app.mode {
+                let response = op_mode.register_initate(&req).await?;
+                feedback.on_success(Box::new(response)).await;
+            }
+        }
+
+        UnAuthorizedStateAction::CompleteRegistration(verify_otp) => {
+            feedback.on_loading().await;
+            if let ApplicationMode::Guest(op_mode) = &app.mode {
+                let response = op_mode.register_complete(&verify_otp).await?;
+                feedback.on_success(Box::new(response)).await;
             }
         }
     };

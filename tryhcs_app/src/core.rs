@@ -9,8 +9,10 @@ use tryhcs_shared::{
     api_params::ErrorMessage,
     encryption::{self, Encryption, NoEncryption},
     institution_params::{
-        AuthenticatedUser, AuthorizedInstitutionUser, AuthorizedUser, DepartmentDto, DepartmentId,
-        DepartmentShadowId, InitiatedOtp, LoginReq, StaffDto, StaffId, StaffShadowId, VerifyOTP,
+        AuthenticatedUser, AuthorizedInstitutionUser, AuthorizedUser, CreateDepartment,
+        CreateInstitution, DepartmentAndStaffDto, DepartmentDto, DepartmentId, DepartmentShadowId,
+        InitiatedOtp, InstitutionDto, LoginReq, NewStaff, StaffDto, StaffId, StaffShadowId,
+        VerifyOTP,
     },
 };
 
@@ -219,7 +221,7 @@ impl GuestApplication {
 }
 
 impl GuestApplication {
-    pub async fn login(
+    pub async fn login_initate(
         &self,
         login_req: &LoginReq,
     ) -> eyre::Result<Either<AuthenticatedApplication, InitiatedOtp>, ErrorMessage> {
@@ -298,7 +300,7 @@ impl GuestApplication {
         Ok(())
     }
 
-    pub async fn verify_otp(
+    pub async fn login_complete(
         &self,
         verify_otp: &VerifyOTP,
     ) -> eyre::Result<AuthenticatedApplication, ErrorMessage> {
@@ -308,6 +310,20 @@ impl GuestApplication {
             authenticated.principal,
             self.core.clone(),
         ));
+    }
+
+    pub async fn register_initate(
+        &self,
+        req: &CreateInstitution,
+    ) -> eyre::Result<InitiatedOtp, ErrorMessage> {
+        self.core.hcs_api.initiate_registration(req).await
+    }
+
+    pub async fn register_complete(
+        &self,
+        verify_otp: &VerifyOTP,
+    ) -> eyre::Result<InstitutionDto, ErrorMessage> {
+        self.core.hcs_api.complete_registration(verify_otp).await
     }
 }
 
@@ -382,7 +398,7 @@ impl AuthenticatedApplication {
         return api.get_auth_profile().await;
     }
 
-    pub async fn get_user_staff_profile(
+    pub async fn get_user_workpace_profile(
         &self,
     ) -> eyre::Result<AuthorizedInstitutionUser, ErrorMessage> {
         match self.core.storage.get(CURRENT_WORKSPACE_STORAGE_KEY).await {
@@ -487,12 +503,60 @@ impl AuthenticatedApplication {
     pub async fn get_department(
         &self,
         department_id: &DepartmentShadowId,
+    ) -> eyre::Result<DepartmentAndStaffDto, ErrorMessage> {
+        let storage_key = format!("DIR|DEPARTMENTS|{}", &department_id.0);
+        let api = &self.core.hcs_api;
+        let department = {
+            if api.is_online().await {
+                let department = api.get_department(department_id).await?;
+                self.save_to_storage_ignore_error(&storage_key, &department)
+                    .await;
+                department
+            } else {
+                if let Some(department) = self.extract_from_storage(&storage_key).await {
+                    department
+                } else {
+                    return Err("Department not found".into());
+                }
+            }
+        };
+
+        return Ok(department);
+    }
+
+    pub async fn create_department(
+        &self,
+        req: &CreateDepartment,
     ) -> eyre::Result<DepartmentDto, ErrorMessage> {
-        let department = self
-            .search_departments(None)
-            .await?
-            .into_iter()
-            .find(|department| department.id.eq(&department_id.0));
-        department.ok_or(ErrorMessage("Department not found".into()))
+        self.core.hcs_api.create_department(req).await
+    }
+    pub async fn edit_department(
+        &self,
+        id: &DepartmentShadowId,
+        req: &CreateDepartment,
+    ) -> eyre::Result<DepartmentDto, ErrorMessage> {
+        self.core.hcs_api.edit_department(id, req).await
+    }
+    pub async fn delete_department(
+        &self,
+        id: &DepartmentShadowId,
+    ) -> eyre::Result<(), ErrorMessage> {
+        self.core.hcs_api.delete_department(id).await
+    }
+
+    pub async fn add_staff(&self, req: &NewStaff) -> eyre::Result<StaffDto, ErrorMessage> {
+        self.core.hcs_api.add_staff(req).await
+    }
+
+    pub async fn edit_staff(
+        &self,
+        staff_id: &StaffShadowId,
+        req: &NewStaff,
+    ) -> eyre::Result<StaffDto, ErrorMessage> {
+        self.core.hcs_api.edit_staff(staff_id, req).await
+    }
+
+    pub async fn delete_staff(&self, staff_id: &StaffShadowId) -> eyre::Result<(), ErrorMessage> {
+        self.core.hcs_api.delete_staff(staff_id).await
     }
 }

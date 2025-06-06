@@ -1,7 +1,7 @@
+use crate::core::GlobalApplication;
 use tryhcs_shared::api_params::ErrorMessage;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
-use crate::core::GlobalApplication;
 
 use super::state_engine::{state_machine, StateAction, StateFeedBackTrait};
 use js_sys::Function;
@@ -98,7 +98,11 @@ impl StateFeedBackTrait for JsStateFeedBack {
 }
 
 #[wasm_bindgen]
-pub async fn run_state_machine(app: &mut GlobalApplication, action: JsValue, feedback: JsStateFeedBack) -> Result<(), JsValue> {
+pub async fn run_state_machine(
+    app: &mut GlobalApplication,
+    action: JsValue,
+    feedback: JsStateFeedBack,
+) -> Result<(), JsValue> {
     tracing::info!("Action called");
     tracing::info!(action=?&action);
     let action: serde_json::Value = match serde_wasm_bindgen::from_value(action) {
@@ -123,7 +127,7 @@ pub async fn run_state_machine(app: &mut GlobalApplication, action: JsValue, fee
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
     use console_error_panic_hook;
-    use tracing::{info};
+    use tracing::info;
     use tracing_log::LogTracer;
     use tracing_wasm::WASMLayer;
 
@@ -134,7 +138,6 @@ pub fn main() -> Result<(), JsValue> {
     // LogTracer::init().ok();
 
     tracing_wasm::set_as_global_default();
-
 
     info!("WASM app initialized");
 

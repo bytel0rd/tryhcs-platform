@@ -46,7 +46,7 @@ async fn initate_login_invalid_credentials() {
         password: "Password!".into(),
         device_id: "device1234".into(),
     };
-    let response = app.login(&login_req).await;
+    let response = app.login_initate(&login_req).await;
     if let Err(err) = response {
         error!(message="Login failed response", err=?err);
         return;
@@ -64,10 +64,10 @@ async fn initate_login_successfully() {
         password: "Password1!".into(),
         device_id: "device_12345".into(),
     };
-    let response = app.login(&login_req).await.expect("login failed");
+    let response = app.login_initate(&login_req).await.expect("login failed");
 
     if let Either::Right(verify_otp) = response {
-        app.verify_otp(&VerifyOTP {
+        app.login_complete(&VerifyOTP {
             otp_code: "12345".into(),
             session_id: verify_otp.session_id,
         })
@@ -85,10 +85,10 @@ async fn get_user_auth_profile_successfully() {
         password: "Password1!".into(),
         device_id: "device_12345".into(),
     };
-    let response = app.login(&login_req).await.expect("login failed");
+    let response = app.login_initate(&login_req).await.expect("login failed");
 
     if let Either::Right(verify_otp) = &response {
-        app.verify_otp(&VerifyOTP {
+        app.login_complete(&VerifyOTP {
             otp_code: "12345".into(),
             session_id: verify_otp.session_id.clone(),
         })
